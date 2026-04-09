@@ -232,7 +232,7 @@ Question: {query.question}
             yield "data: [DONE]\n\n"
         except Exception as e:
             logger.error("LLM stream failed: %s", e)
-            yield f"data: [ERROR] {type(e).__name__}: {e}\n\n"
+            yield f"data: Something went wrong. Please try again.\n\n"
             yield "data: [DONE]\n\n"
 
     return StreamingResponse(token_stream(), media_type="text/event-stream")
