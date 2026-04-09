@@ -168,14 +168,14 @@ class RAGEngine:
 
     # ── Keyword retrieval ─────────────────────────────────────────
 
-    def _keyword_search(self, query: str, k: int) -> list[int]:
+    def _keyword_search(self, query: str, k: int) -> list[tuple[int, int]]:
         """Score documents by how many query keywords appear in them.
 
-        Returns indices of the top-k keyword-matched documents,
-        excluding documents with zero matches.
+        Returns (index, score) tuples of the top-k keyword-matched documents,
+        excluding documents with zero matches. Gives bonus for title/Q matches.
         """
         q = query.lower()
-        # Collapse dotted acronyms: R.E.S.P.E.C.T. → respect, C.O.F.F.E.E. → coffee
+        # Collapse dotted acronyms: R.E.S.P.E.C.T. → respect, L.E.A.S.T. → least
         q = re.sub(r'(?:[a-z]\.){2,}[a-z]?\.?', lambda m: m.group().replace('.', ''), q)
         # Tokenise into words, drop single-character tokens (too noisy)
         keywords = {w for w in re.findall(r"\w+", q) if len(w) > 1}
@@ -187,31 +187,42 @@ class RAGEngine:
             doc_lower = doc.lower()
             hits = sum(1 for kw in keywords if kw in doc_lower)
             if hits > 0:
-                scores.append((idx, hits))
+                # Bonus: if keyword appears in the first line (title/question), it's more relevant
+                first_line = doc_lower.split('\n', 1)[0]
+                title_hits = sum(2 for kw in keywords if kw in first_line)
+                scores.append((idx, hits + title_hits))
 
         # Sort by hit count descending, take top-k
         scores.sort(key=lambda x: x[1], reverse=True)
-        return [idx for idx, _ in scores[:k]]
+        return [(idx, score) for idx, score in scores[:k]]
 
     # ── Hybrid merge ──────────────────────────────────────────────
 
-    def _merge_results(self, keyword_ids: list[int], semantic_ids: list[int], k: int) -> list[int]:
-        """Interleave semantic and keyword results for balanced retrieval."""
+    def _merge_results(self, keyword_results: list[tuple[int, int]], semantic_ids: list[int], k: int) -> list[int]:
+        """Merge semantic and keyword results, prioritizing keyword when matches are strong."""
         seen: set[int] = set()
         merged: list[int] = []
 
-        # Interleave: semantic first (better for natural language), then keyword
+        keyword_ids = [idx for idx, _ in keyword_results]
+        best_kw_score = keyword_results[0][1] if keyword_results else 0
+
+        # If keyword search has strong matches (title hit bonus = 2+), lead with keyword
+        keyword_first = best_kw_score >= 3
+
+        primary = keyword_ids if keyword_first else semantic_ids
+        secondary = semantic_ids if keyword_first else keyword_ids
+
         i = j = 0
-        while len(merged) < k and (i < len(semantic_ids) or j < len(keyword_ids)):
-            if i < len(semantic_ids) and semantic_ids[i] not in seen:
-                seen.add(semantic_ids[i])
-                merged.append(semantic_ids[i])
+        while len(merged) < k and (i < len(primary) or j < len(secondary)):
+            if i < len(primary) and primary[i] not in seen:
+                seen.add(primary[i])
+                merged.append(primary[i])
             i += 1
             if len(merged) >= k:
                 break
-            if j < len(keyword_ids) and keyword_ids[j] not in seen:
-                seen.add(keyword_ids[j])
-                merged.append(keyword_ids[j])
+            if j < len(secondary) and secondary[j] not in seen:
+                seen.add(secondary[j])
+                merged.append(secondary[j])
             j += 1
 
         return merged
@@ -224,14 +235,14 @@ class RAGEngine:
         Returns:
             {"context": str, "sources": list[str], "confidence": str}
         """
-        keyword_ids = self._keyword_search(query, k)
+        keyword_results = self._keyword_search(query, k)
         semantic_results = self._semantic_search(query, k)
 
         # Extract just indices for merge, keep scores for confidence
         semantic_ids = [idx for idx, _ in semantic_results]
         score_map = {idx: score for idx, score in semantic_results}
 
-        final_ids = self._merge_results(keyword_ids, semantic_ids, k)
+        final_ids = self._merge_results(keyword_results, semantic_ids, k)
         results = [self.documents[i] for i in final_ids]
 
         # Deduplicate source labels and collect them
@@ -253,7 +264,7 @@ class RAGEngine:
             confidence = "low"
 
         logger.debug("Query: %s", query)
-        logger.debug("Keyword hits: %s | Semantic hits: %s | Final: %s", keyword_ids, semantic_ids, final_ids)
+        logger.debug("Keyword hits: %s | Semantic hits: %s | Final: %s", keyword_results, semantic_ids, final_ids)
         logger.debug("Best score: %.3f → confidence: %s", best_score, confidence)
         for i, doc in enumerate(results, 1):
             logger.debug("  [%d] %s", i, doc[:120])
