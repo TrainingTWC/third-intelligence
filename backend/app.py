@@ -66,6 +66,21 @@ logger.info("Using Ollama (%s) at %s", OLLAMA_MODEL, OLLAMA_BASE)
 
 rag = RAGEngine()
 
+# ── Health check endpoint ──
+@app.get("/health")
+def health():
+    """Check Ollama connectivity and model availability."""
+    import httpx as _hx
+    result = {"ollama_base": OLLAMA_BASE, "model": OLLAMA_MODEL, "ollama_reachable": False, "models": [], "error": None}
+    try:
+        r = _hx.get(f"{OLLAMA_BASE}/api/tags", timeout=5)
+        result["ollama_reachable"] = True
+        tags = r.json()
+        result["models"] = [m.get("name", "?") for m in tags.get("models", [])]
+    except Exception as e:
+        result["error"] = str(e)
+    return result
+
 # ── Serve frontend ──
 app.mount("/static", StaticFiles(directory="../frontend"), name="static")
 
