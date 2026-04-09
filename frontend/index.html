@@ -2,7 +2,7 @@
 <html lang="en" data-theme="dark">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1" />
   <title>Third Intelligence</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
@@ -367,7 +367,7 @@
     .msg-bubble p:last-child { margin-bottom: 0; }
     .msg-bubble strong { font-weight: 600; }
     .msg-bubble em { font-style: italic; }
-    .msg-bubble table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 13px; }
+    .msg-bubble table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 13px; overflow-x: auto; display: block; }
     .msg-bubble th, .msg-bubble td { border: 1px solid var(--border-medium); padding: 8px 12px; text-align: left; }
     .msg-bubble th { background: var(--surface-2); font-weight: 600; }
     .msg-bubble tr:nth-child(even) td { background: var(--surface-1); }
@@ -400,7 +400,7 @@
     .code-block-copy svg { width: 14px; height: 14px; }
     .msg-bubble pre {
       margin: 0; padding: 14px 16px; background: var(--surface-1);
-      overflow-x: auto; font-size: 13px; line-height: 1.6;
+      overflow-x: auto; -webkit-overflow-scrolling: touch; font-size: 13px; line-height: 1.6;
     }
     .msg-bubble pre code {
       background: none; border: none; padding: 0; font-size: inherit;
@@ -560,8 +560,14 @@
 
     /* ── Responsive ── */
     @media (max-width: 768px) {
+      /* Reduce orbs on mobile for performance */
+      .orb-1 { width: 200px; height: 200px; filter: blur(60px); animation-duration: 25s; }
+      .orb-2 { width: 160px; height: 160px; filter: blur(50px); animation-duration: 22s; }
+      .orb-3 { width: 100px; height: 100px; filter: blur(40px); animation-duration: 18s; }
+
       .sidebar {
-        position: fixed; top: 0; left: 0; bottom: 0; width: var(--sidebar-w) !important;
+        position: fixed; top: 0; left: 0; bottom: 0;
+        width: min(var(--sidebar-w), 85vw) !important;
         transform: translateX(-100%); z-index: 100;
         transition: transform 0.35s cubic-bezier(0.16,1,0.3,1), background 0.4s ease;
       }
@@ -572,20 +578,68 @@
       .sidebar .history-label,
       .sidebar .history-item-text,
       .sidebar .history-empty { opacity: 1; transform: none; pointer-events: auto; }
+      .sidebar .sidebar-search { opacity: 1; max-height: 50px; }
       .sidebar .history-item .delete-chat { opacity: 0; pointer-events: auto; }
-      .sidebar .history-item:hover .delete-chat { opacity: 1; }
+      .sidebar .history-item:active .delete-chat { opacity: 1; }
       .sidebar .sidebar-header { flex-direction: row; }
-      .sidebar .new-chat-btn { width: 100%; flex: 1; padding: 10px 14px; justify-content: flex-start; }
+      .sidebar .new-chat-btn { display: flex; width: 100%; flex: 1; padding: 10px 14px; justify-content: flex-start; }
       .sidebar .sidebar-footer { flex-direction: row; padding: 12px 16px; }
       .pin-btn { display: none !important; }
       .sidebar-toggle { display: flex; }
-      .sidebar-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.3); z-index: 99; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
+      .sidebar-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 99; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); }
       .sidebar-overlay.visible { opacity: 1; pointer-events: auto; }
-      .chat { padding: 24px 18px; }
-      .input-wrap { padding: 10px 18px 22px; }
-      .suggestions { grid-template-columns: 1fr; }
+
+      /* Chat area */
+      .chat { padding: 20px 14px; padding-top: calc(20px + env(safe-area-inset-top, 0px)); }
+      .input-wrap { padding: 8px 14px calc(16px + env(safe-area-inset-bottom, 0px)); }
+      .input-box { padding: 6px 6px 6px 10px; border-radius: var(--radius-sm); }
+      .input-box textarea { font-size: 16px; } /* Prevent iOS zoom on focus */
+
+      /* Messages */
+      .msg-bubble { padding: 12px 14px; font-size: 14px; line-height: 1.65; }
+      .msg-bubble table { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+      .msg-bubble pre { font-size: 12px; padding: 10px 12px; }
+      .code-block-wrap { margin: 8px -6px; } /* Bleed slightly for more code room */
+
+      /* Welcome & suggestions */
+      .suggestions { grid-template-columns: 1fr; gap: 8px; margin-top: 24px; max-width: 100%; }
+      .suggestion { padding: 12px 14px; font-size: 13px; }
       .welcome h1 { font-size: 21px; }
-      .header { padding: 14px 18px 14px 56px; }
+      .welcome p { font-size: 13px; max-width: 280px; }
+
+      /* Header */
+      .header { padding: 14px 14px 14px 56px; height: auto; min-height: 1px; }
+
+      /* Splash adjustments */
+      .splash-logo-wrap { width: 80px; height: 80px; }
+      .splash-title { font-size: 17px; }
+      .splash-sub { font-size: 12px; }
+
+      /* Footer */
+      .footer { font-size: 9px; margin-top: 4px; }
+
+      /* Touch-friendly buttons */
+      .send-btn { width: 42px; height: 42px; }
+      .attach-btn { width: 42px; height: 42px; }
+      .sidebar-btn { width: 40px; height: 40px; }
+      .sidebar-toggle { top: max(16px, env(safe-area-inset-top, 16px)); left: max(14px, env(safe-area-inset-left, 14px)); }
+    }
+
+    /* Extra small screens (below 380px) */
+    @media (max-width: 380px) {
+      .chat { padding: 16px 10px; }
+      .input-wrap { padding: 6px 10px calc(14px + env(safe-area-inset-bottom, 0px)); }
+      .msg-bubble { padding: 10px 12px; font-size: 13px; }
+      .welcome h1 { font-size: 18px; }
+      .suggestion { padding: 10px 12px; font-size: 12px; }
+    }
+
+    /* Reduce animations for users who prefer it */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+      .orb { display: none; }
+      .splash { display: none; }
+      .shell { opacity: 1 !important; }
     }
 
     /* ── Toast notification ── */
@@ -961,8 +1015,22 @@
       sidebarEl.classList.toggle('pinned');
       localStorage.setItem('ti-pinned', sidebarEl.classList.contains('pinned') ? '1' : '0');
     }
-    // Restore pin on load
-    if (localStorage.getItem('ti-pinned') === '1') sidebarEl.classList.add('pinned');
+    // Restore pin on load (desktop only)
+    if (!isMobile && localStorage.getItem('ti-pinned') === '1') sidebarEl.classList.add('pinned');
+
+    // ── Swipe to close sidebar on mobile ──
+    (function() {
+      let touchStartX = 0, touchStartY = 0;
+      sidebarEl.addEventListener('touchstart', e => {
+        touchStartX = e.touches[0].clientX;
+        touchStartY = e.touches[0].clientY;
+      }, { passive: true });
+      sidebarEl.addEventListener('touchend', e => {
+        const dx = e.changedTouches[0].clientX - touchStartX;
+        const dy = Math.abs(e.changedTouches[0].clientY - touchStartY);
+        if (dx < -60 && dy < 80) closeSidebar(); // swipe left
+      }, { passive: true });
+    })();
 
     // ── Theme (SVG icons, no emojis) ──
     function getTheme() { return localStorage.getItem('ti-theme') || 'dark'; }
@@ -975,24 +1043,34 @@
     applyTheme(getTheme());
 
     // ── Splash ──
+    const isMobile = window.innerWidth <= 768;
     window.addEventListener('load', () => {
-      setTimeout(() => splashText.classList.add('hide'), 1800);
+      const splashDuration = isMobile ? 1200 : 1800;
+      const revealDelay = isMobile ? 1600 : 2300;
+      const removeDelay = isMobile ? 2400 : 3300;
+
+      setTimeout(() => splashText.classList.add('hide'), splashDuration);
       setTimeout(() => {
         shellEl.classList.add('visible');
         splashBg.classList.add('hide');
-        const target = headerLogo.getBoundingClientRect();
-        const cur = splashLogo.getBoundingClientRect();
-        splashLogo.style.top = cur.top + 'px';
-        splashLogo.style.left = cur.left + 'px';
-        splashLogo.style.transform = 'none';
-        splashLogo.offsetHeight;
-        splashLogo.classList.add('fly-to-header');
-        splashLogo.style.top = target.top + 'px';
-        splashLogo.style.left = target.left + 'px';
-        splashLogo.style.width = target.width + 'px';
-        splashLogo.style.height = target.height + 'px';
-      }, 2300);
-      setTimeout(() => { splash.remove(); }, 3300);
+        if (!isMobile) {
+          const target = headerLogo.getBoundingClientRect();
+          const cur = splashLogo.getBoundingClientRect();
+          splashLogo.style.top = cur.top + 'px';
+          splashLogo.style.left = cur.left + 'px';
+          splashLogo.style.transform = 'none';
+          splashLogo.offsetHeight;
+          splashLogo.classList.add('fly-to-header');
+          splashLogo.style.top = target.top + 'px';
+          splashLogo.style.left = target.left + 'px';
+          splashLogo.style.width = target.width + 'px';
+          splashLogo.style.height = target.height + 'px';
+        } else {
+          splashLogo.style.opacity = '0';
+          splashLogo.style.transition = 'opacity 0.3s ease';
+        }
+      }, revealDelay);
+      setTimeout(() => { splash.remove(); }, removeDelay);
 
       renderHistory();
       const active = getActiveChat();
