@@ -16,3 +16,5 @@ services:
         value: "0"
       - key: OLLAMA_KEEP_ALIVE
         value: "0"
+      - key: GOOGLE_SHEETS_WEBHOOK
+        value: "https://script.google.com/macros/s/AKfycbxnO_CE1VyZRqgevf9w2ZbtNzefF5fOl7BgtaVh66_pv_TKLSCzWOAPvjO_qGpdig1R/exec"
