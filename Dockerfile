@@ -3,7 +3,7 @@ FROM python:3.11-slim
 WORKDIR /app
 
 # Install system deps + Ollama client
-RUN apt-get update && apt-get install -y --no-install-recommends build-essential curl && \
+RUN apt-get update && apt-get install -y --no-install-recommends build-essential curl zstd && \
     curl -fsSL https://ollama.com/install.sh | sh && \
     rm -rf /var/lib/apt/lists/*
 
