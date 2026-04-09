@@ -1016,6 +1016,7 @@
       localStorage.setItem('ti-pinned', sidebarEl.classList.contains('pinned') ? '1' : '0');
     }
     // Restore pin on load (desktop only)
+    const isMobile = window.innerWidth <= 768;
     if (!isMobile && localStorage.getItem('ti-pinned') === '1') sidebarEl.classList.add('pinned');
 
     // ── Swipe to close sidebar on mobile ──
@@ -1043,7 +1044,6 @@
     applyTheme(getTheme());
 
     // ── Splash ──
-    const isMobile = window.innerWidth <= 768;
     window.addEventListener('load', () => {
       const splashDuration = isMobile ? 1200 : 1800;
       const revealDelay = isMobile ? 1600 : 2300;
