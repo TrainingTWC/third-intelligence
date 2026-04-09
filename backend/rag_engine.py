@@ -7,7 +7,7 @@ import threading
 
 import faiss
 import numpy as np
-from sentence_transformers import SentenceTransformer
+from fastembed import TextEmbedding
 
 logger = logging.getLogger(__name__)
 
@@ -18,9 +18,9 @@ LEARNED_PATH = os.path.join(os.path.dirname(__file__), "..", "data", "learned.js
 class RAGEngine:
     """Hybrid retrieval engine: FAISS cosine-similarity search + keyword scoring."""
 
-    def __init__(self, data_path: str = "../data/data.json", model_name: str = "all-MiniLM-L6-v2"):
+    def __init__(self, data_path: str = "../data/data.json", model_name: str = "sentence-transformers/all-MiniLM-L6-v2"):
         self._lock = threading.Lock()
-        self.embedder = SentenceTransformer(model_name)
+        self.embedder = TextEmbedding(model_name=model_name)
         self.documents, self.doc_sources = self._load_documents(data_path)
         self._seen_keys = {doc.strip().lower() for doc in self.documents}
         self.index = self._build_or_load_index(data_path)
@@ -131,7 +131,7 @@ class RAGEngine:
                 return faiss.read_index(index_path)
 
         logger.info("Building new FAISS index (cosine similarity)")
-        embeddings = self.embedder.encode(self.documents, show_progress_bar=False)
+        embeddings = np.array(list(self.embedder.embed(self.documents)), dtype=np.float32)
         # Normalize for cosine similarity via inner product
         faiss.normalize_L2(embeddings)
         self.embeddings = embeddings
@@ -153,7 +153,7 @@ class RAGEngine:
 
     def _semantic_search(self, query: str, k: int) -> list[tuple[int, float]]:
         """Return (index, score) tuples of top-k semantically similar documents."""
-        query_vec = self.embedder.encode([query])
+        query_vec = np.array(list(self.embedder.embed([query])), dtype=np.float32)
         faiss.normalize_L2(query_vec)
         scores, indices = self.index.search(np.array(query_vec), k)
         return [(int(idx), float(score)) for idx, score in zip(indices[0], scores[0]) if idx >= 0]
@@ -295,7 +295,7 @@ class RAGEngine:
 
     def _hot_add(self, new_docs: list[str], new_sources: list[str]):
         """Add new documents to the live FAISS index without rebuild."""
-        embeddings = self.embedder.encode(new_docs, show_progress_bar=False)
+        embeddings = np.array(list(self.embedder.embed(new_docs)), dtype=np.float32)
         faiss.normalize_L2(embeddings)
         with self._lock:
             self.index.add(np.array(embeddings))

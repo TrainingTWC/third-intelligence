@@ -1,23 +1,33 @@
+FROM python:3.11-slim AS builder
+
+WORKDIR /app
+
+# Build dependencies for faiss-cpu
+RUN apt-get update && apt-get install -y --no-install-recommends build-essential && \
+    rm -rf /var/lib/apt/lists/*
+
+COPY requirements.txt .
+RUN pip install --no-cache-dir --prefix=/install -r requirements.txt
+
+# ── Final slim image ──────────────────────────────────────────
 FROM python:3.11-slim
 
 WORKDIR /app
 
-# Install system deps + Ollama client
-RUN apt-get update && apt-get install -y --no-install-recommends build-essential curl zstd && \
+# Only runtime deps: curl + zstd for Ollama install
+RUN apt-get update && apt-get install -y --no-install-recommends curl zstd && \
     curl -fsSL https://ollama.com/install.sh | sh && \
-    rm -rf /var/lib/apt/lists/*
+    apt-get purge -y curl zstd && apt-get autoremove -y && \
+    rm -rf /var/lib/apt/lists/* /tmp/* /root/.cache
 
-# Install Python deps
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# Copy pre-built Python packages from builder
+COPY --from=builder /install /usr/local
 
 # Copy app code
 COPY . .
 
-# Expose port
 EXPOSE 8000
 
-# Start Ollama daemon + pull cloud model + start uvicorn
 COPY start.sh .
 RUN chmod +x start.sh
 CMD ["./start.sh"]
