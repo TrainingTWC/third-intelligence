@@ -1,6 +1,11 @@
 #!/bin/bash
 set -e
 
+# Constrain Ollama memory — cloud models don't need local RAM
+export OLLAMA_NUM_PARALLEL=1
+export OLLAMA_MAX_LOADED_MODELS=0
+export OLLAMA_KEEP_ALIVE=0
+
 # Start Ollama daemon in background (needed for cloud model routing)
 echo "Starting Ollama daemon..."
 ollama serve &

@@ -20,13 +20,21 @@ class RAGEngine:
 
     def __init__(self, data_path: str = "../data/data.json", model_name: str = "sentence-transformers/all-MiniLM-L6-v2"):
         self._lock = threading.Lock()
-        self.embedder = TextEmbedding(model_name=model_name)
+        self._model_name = model_name
+        self._embedder = None  # Lazy-loaded on first use to save RAM at startup
         self.documents, self.doc_sources = self._load_documents(data_path)
         self._seen_keys = {doc.strip().lower() for doc in self.documents}
         self.index = self._build_or_load_index(data_path)
         # Load previously learned knowledge (conversations + uploads)
         self._load_learned()
         logger.info("RAGEngine ready — %d documents indexed", len(self.documents))
+
+    @property
+    def embedder(self):
+        """Lazy-load the ONNX embedding model on first use."""
+        if self._embedder is None:
+            self._embedder = TextEmbedding(model_name=self._model_name)
+        return self._embedder
 
     # ── Data loading ──────────────────────────────────────────────
 
