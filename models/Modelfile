@@ -1,0 +1,6 @@
+## NOTE: This Modelfile is no longer used by the application.
+## The app connects directly to Ollama using gemma4:31b-cloud.
+## System prompt is defined inline in backend/app.py (SYSTEM_PROMPT).
+## This file is kept for reference only.
+
+FROM gemma4:31b-cloud

@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: third-intelligence
+    runtime: docker
+    plan: free
+    envVars:
+      - key: OLLAMA_MODEL
+        value: gemma4:31b-cloud
+      - key: API_KEY
+        generateValue: true  # Auto-generates a random API key for external apps
+      - key: PORT
+        value: 8000

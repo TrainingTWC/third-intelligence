@@ -1,0 +1,11 @@
+fastapi
+uvicorn
+langchain-ollama
+sentence-transformers
+faiss-cpu
+numpy
+python-multipart
+pdfplumber
+python-docx
+Pillow
+httpx
