@@ -172,9 +172,12 @@ class RAGEngine:
         """Score documents by how many query keywords appear in them.
 
         Returns (index, score) tuples of the top-k keyword-matched documents,
-        excluding documents with zero matches. Gives bonus for title/Q matches.
+        excluding documents with zero matches. Gives bonus for title/Q matches
+        and for dotted-acronym exact matches.
         """
         q = query.lower()
+        # Detect dotted acronyms BEFORE collapsing (e.g. "c.o.f.f.e.e.", "l.e.a.s.t.")
+        dotted_acronyms = re.findall(r'(?:[a-z]\.){2,}[a-z]?\.?', q)
         # Collapse dotted acronyms: R.E.S.P.E.C.T. → respect, L.E.A.S.T. → least
         q = re.sub(r'(?:[a-z]\.){2,}[a-z]?\.?', lambda m: m.group().replace('.', ''), q)
         # Tokenise into words, drop single-character tokens (too noisy)
@@ -190,7 +193,10 @@ class RAGEngine:
                 # Bonus: if keyword appears in the first line (title/question), it's more relevant
                 first_line = doc_lower.split('\n', 1)[0]
                 title_hits = sum(2 for kw in keywords if kw in first_line)
-                scores.append((idx, hits + title_hits))
+                # Big bonus: if the original dotted acronym appears in the document
+                # (distinguishes "C.O.F.F.E.E. framework" docs from generic "coffee" mentions)
+                acronym_bonus = sum(5 for acr in dotted_acronyms if acr in doc_lower)
+                scores.append((idx, hits + title_hits + acronym_bonus))
 
         # Sort by hit count descending, take top-k
         scores.sort(key=lambda x: x[1], reverse=True)
