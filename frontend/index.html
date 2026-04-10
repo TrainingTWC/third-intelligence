@@ -1671,7 +1671,7 @@
       voiceStatus.textContent = 'Tap to start';
       voiceTranscript.textContent = '';
       if (voiceRecognition) { try { voiceRecognition.abort(); } catch {} voiceRecognition = null; }
-      window.speechSynthesis.cancel();
+      ttsCancel();
     }
 
     function startVoiceListening() {
@@ -1712,6 +1712,61 @@
       voiceRecognition.start();
     }
 
+    // ── Sentence-streaming TTS queue ──
+    let ttsQueue = [];
+    let ttsSpeaking = false;
+    let ttsResolve = null;
+
+    function cleanForTTS(text) {
+      return text.replace(/\*\*(.+?)\*\*/g, '$1')
+        .replace(/`([^`]+)`/g, '$1')
+        .replace(/#{1,4}\s+/g, '')
+        .replace(/[\*\-]\s+/g, '')
+        .replace(/\n+/g, '. ')
+        .trim();
+    }
+
+    function ttsEnqueue(sentence) {
+      const clean = cleanForTTS(sentence);
+      if (!clean) return;
+      ttsQueue.push(clean);
+      if (!ttsSpeaking) ttsProcessQueue();
+    }
+
+    function ttsProcessQueue() {
+      if (ttsQueue.length === 0) {
+        ttsSpeaking = false;
+        if (ttsResolve) { ttsResolve(); ttsResolve = null; }
+        return;
+      }
+      ttsSpeaking = true;
+      const text = ttsQueue.shift();
+      const utter = new SpeechSynthesisUtterance(text);
+      utter.lang = LANG_MAP[currentLang] || 'en-US';
+      utter.rate = 1.1;
+      utter.onend = () => ttsProcessQueue();
+      utter.onerror = () => ttsProcessQueue();
+      window.speechSynthesis.speak(utter);
+    }
+
+    function ttsFlush() {
+      // Returns a promise that resolves when all queued speech finishes
+      return new Promise(resolve => {
+        if (!ttsSpeaking && ttsQueue.length === 0) { resolve(); return; }
+        ttsResolve = resolve;
+      });
+    }
+
+    function ttsCancel() {
+      ttsQueue = [];
+      ttsSpeaking = false;
+      ttsResolve = null;
+      window.speechSynthesis.cancel();
+    }
+
+    // Sentence boundary regex: split on . ! ? : followed by space/end, or double newline
+    const SENTENCE_RE = /(?<=[.!?:])\s+|\n\n/;
+
     async function voiceAsk(question) {
       setVoiceState('thinking');
       voiceTranscript.textContent = question;
@@ -1725,12 +1780,15 @@
         const res = await fetch('/ask', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ question, history: voiceHistory.slice(-10), mode: currentMode, language: currentLang })
+          body: JSON.stringify({ question, history: voiceHistory.slice(-10), mode: 'voice', language: currentLang })
         });
 
         let fullText = '';
+        let buffer = '';  // accumulate tokens until sentence boundary
+        let firstSentenceSpoken = false;
         const reader = res.body.getReader();
         const decoder = new TextDecoder();
+
         while (true) {
           const { done, value } = await reader.read();
           if (done) break;
@@ -1741,7 +1799,30 @@
             const token = line.slice(6);
             if (token === '[DONE]' || token.startsWith('[META]')) continue;
             fullText += token;
+            buffer += token;
+
+            // Check for sentence boundaries and queue TTS
+            let parts = buffer.split(SENTENCE_RE);
+            while (parts.length > 1) {
+              const sentence = parts.shift();
+              if (sentence.trim()) {
+                if (!firstSentenceSpoken) {
+                  firstSentenceSpoken = true;
+                  setVoiceState('speaking');
+                }
+                ttsEnqueue(sentence);
+              }
+              buffer = parts.join(' ');
+            }
+            // Update transcript with what we have so far
+            voiceTranscript.textContent = fullText.length > 200 ? fullText.slice(0, 200) + '...' : fullText;
           }
+        }
+
+        // Flush remaining buffer
+        if (buffer.trim()) {
+          if (!firstSentenceSpoken) setVoiceState('speaking');
+          ttsEnqueue(buffer);
         }
 
         if (!fullText) fullText = "I don't have that information right now.";
@@ -1751,10 +1832,8 @@
         voiceHistory.push({ role: 'ai', text: fullText });
 
         if (!voiceConvoActive) return;
-        // Speak the response
-        setVoiceState('speaking');
-        voiceTranscript.textContent = fullText.length > 200 ? fullText.slice(0, 200) + '...' : fullText;
-        await voiceSpeak(fullText);
+        // Wait for TTS to finish all queued sentences
+        await ttsFlush();
 
         if (voiceConvoActive) startVoiceListening();
       } catch {
@@ -1765,28 +1844,11 @@
       }
     }
 
-    function voiceSpeak(text) {
-      return new Promise((resolve) => {
-        // Strip markdown for TTS
-        const clean = text.replace(/\*\*(.+?)\*\*/g, '$1')
-          .replace(/`([^`]+)`/g, '$1')
-          .replace(/#{1,4}\s+/g, '')
-          .replace(/[\*\-]\s+/g, '')
-          .replace(/\n+/g, '. ');
-        const utter = new SpeechSynthesisUtterance(clean);
-        utter.lang = LANG_MAP[currentLang] || 'en-US';
-        utter.rate = 1.05;
-        utter.onend = resolve;
-        utter.onerror = resolve;
-        window.speechSynthesis.speak(utter);
-      });
-    }
-
     // Allow clicking the orb to interrupt/restart listening
     document.querySelector('.voice-orb-wrap').addEventListener('click', () => {
       if (!voiceConvoActive) return;
       if (voiceState === 'speaking') {
-        window.speechSynthesis.cancel();
+        ttsCancel();
         startVoiceListening();
       }
     });

@@ -200,7 +200,7 @@ class Query(BaseModel):
     @field_validator("mode")
     @classmethod
     def validate_mode(cls, v: str) -> str:
-        if v not in ("normal", "walkthrough", "quiz"):
+        if v not in ("normal", "walkthrough", "quiz", "voice"):
             return "normal"
         return v
 
@@ -257,6 +257,17 @@ Generate a quiz question based on the context provided. Rules:
 7. Base questions ONLY on the retrieved context — never make up facts.
 """
 
+VOICE_INSTRUCTION = """
+VOICE MODE — The user is talking to you via voice. Your response will be read aloud by text-to-speech.
+RULES:
+- Keep responses SHORT. 2-3 sentences max for simple questions. Never more than 5 sentences.
+- Be conversational and natural — this is a spoken dialogue, not a written document.
+- NO bullet points, NO numbered lists, NO markdown formatting, NO headers.
+- Write in flowing sentences that sound good when spoken aloud.
+- Skip filler like "Great question!" — just answer directly.
+- If the topic genuinely needs detail, give a brief summary and offer: "Want me to go deeper on that?"
+"""
+
 LANGUAGE_NAMES = {"en": "English", "hi": "Hindi", "kn": "Kannada", "ta": "Tamil", "te": "Telugu"}
 
 
@@ -267,6 +278,8 @@ def _build_mode_prompt(mode: str, language: str) -> str:
         extra += WALKTHROUGH_INSTRUCTION
     elif mode == "quiz":
         extra += QUIZ_INSTRUCTION
+    elif mode == "voice":
+        extra += VOICE_INSTRUCTION
     if language != "en":
         lang_name = LANGUAGE_NAMES.get(language, "English")
         extra += f"\n\nLANGUAGE: Respond entirely in {lang_name}. Use {lang_name} script. "
