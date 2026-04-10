@@ -6,10 +6,13 @@
 <title>Third Intelligence — Admin</title>
 <style>
   :root {
-    --bg: #f5f5f7; --surface: #fff; --border: #e0e0e0;
-    --text: #1d1d1f; --text2: #6e6e73; --accent: #0071e3;
-    --accent-hover: #0077ed; --danger: #ff3b30; --danger-hover: #d63028;
-    --success: #34c759; --tag-bg: #f0f0f5; --radius: 10px;
+    --bg: #f5f5f7; --surface: #fff; --surface2: #fafafa; --border: #e0e0e0;
+    --text: #1d1d1f; --text2: #6e6e73; --text3: #aeaeb2;
+    --accent: #0071e3; --accent-hover: #0077ed; --accent-bg: rgba(0,113,227,.08);
+    --danger: #ff3b30; --danger-hover: #d63028; --danger-bg: rgba(255,59,48,.08);
+    --success: #34c759; --success-bg: rgba(52,199,89,.1);
+    --warn: #ff9f0a; --warn-bg: rgba(255,159,10,.1);
+    --tag-bg: #f0f0f5; --radius: 12px; --radius-sm: 8px;
   }
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   body {
@@ -20,99 +23,157 @@
   /* ── Header ── */
   .header {
     background: var(--surface); border-bottom: 1px solid var(--border);
-    padding: 16px 24px; display: flex; align-items: center; gap: 16px;
-    position: sticky; top: 0; z-index: 100;
+    padding: 14px 24px; display: flex; align-items: center; gap: 16px;
+    position: sticky; top: 0; z-index: 100; flex-wrap: wrap;
   }
-  .header h1 { font-size: 20px; font-weight: 600; white-space: nowrap; }
-  .header .url-group { display: flex; align-items: center; gap: 8px; flex: 1; }
-  .header input {
-    flex: 1; max-width: 480px; padding: 8px 12px; border: 1px solid var(--border);
-    border-radius: 8px; font-size: 13px; outline: none;
+  .header h1 { font-size: 18px; font-weight: 700; white-space: nowrap; letter-spacing: -0.3px; }
+  .header h1 span { color: var(--accent); }
+  .url-group { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 280px; }
+  .url-group input {
+    flex: 1; max-width: 420px; padding: 7px 12px; border: 1px solid var(--border);
+    border-radius: var(--radius-sm); font-size: 13px; outline: none; transition: all .15s;
   }
-  .header input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(0,113,227,.15); }
-  .header .status { font-size: 12px; padding: 4px 10px; border-radius: 99px; white-space: nowrap; }
-  .header .status.ok { background: #e8fbe8; color: #1b7a1b; }
-  .header .status.err { background: #fde8e8; color: #c00; }
-  .header .status.pending { background: #fef9e7; color: #856404; }
+  .url-group input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(0,113,227,.12); }
+  .status { font-size: 11px; padding: 3px 10px; border-radius: 99px; white-space: nowrap; font-weight: 500; }
+  .status.ok { background: var(--success-bg); color: #1b7a1b; }
+  .status.err { background: var(--danger-bg); color: #c00; }
+  .status.pending { background: var(--warn-bg); color: #856404; }
 
   /* ── Buttons ── */
   .btn {
-    padding: 7px 16px; border-radius: 8px; font-size: 13px; font-weight: 500;
+    padding: 7px 16px; border-radius: var(--radius-sm); font-size: 13px; font-weight: 500;
     border: none; cursor: pointer; transition: all .15s; display: inline-flex;
     align-items: center; gap: 6px; white-space: nowrap;
   }
   .btn-primary { background: var(--accent); color: #fff; }
-  .btn-primary:hover { background: var(--accent-hover); }
+  .btn-primary:hover { background: var(--accent-hover); transform: translateY(-1px); }
   .btn-danger { background: var(--danger); color: #fff; }
   .btn-danger:hover { background: var(--danger-hover); }
+  .btn-outline { background: transparent; color: var(--accent); border: 1px solid var(--accent); }
+  .btn-outline:hover { background: var(--accent-bg); }
   .btn-ghost { background: transparent; color: var(--accent); }
-  .btn-ghost:hover { background: rgba(0,113,227,.08); }
+  .btn-ghost:hover { background: var(--accent-bg); }
   .btn-sm { padding: 4px 10px; font-size: 12px; }
-  .btn:disabled { opacity: .5; cursor: not-allowed; }
+  .btn-xs { padding: 2px 8px; font-size: 11px; }
+  .btn:disabled { opacity: .5; cursor: not-allowed; pointer-events: none; }
 
   /* ── Stats bar ── */
   .stats {
-    display: flex; gap: 24px; padding: 16px 24px; background: var(--surface);
+    display: flex; gap: 0; background: var(--surface);
     border-bottom: 1px solid var(--border);
   }
-  .stat { text-align: center; }
-  .stat .num { font-size: 28px; font-weight: 700; color: var(--accent); }
-  .stat .label { font-size: 12px; color: var(--text2); text-transform: uppercase; letter-spacing: .5px; }
+  .stat {
+    flex: 1; text-align: center; padding: 14px 16px;
+    border-right: 1px solid var(--border); transition: background .15s;
+  }
+  .stat:last-child { border-right: none; }
+  .stat:hover { background: var(--accent-bg); }
+  .stat .num { font-size: 26px; font-weight: 700; color: var(--accent); letter-spacing: -0.5px; }
+  .stat .label { font-size: 11px; color: var(--text2); text-transform: uppercase; letter-spacing: .8px; font-weight: 600; }
 
-  /* ── Controls bar ── */
-  .controls {
-    display: flex; align-items: center; gap: 12px; padding: 16px 24px;
+  /* ── Toolbar ── */
+  .toolbar {
+    display: flex; align-items: center; gap: 10px; padding: 14px 24px;
+    flex-wrap: wrap; background: var(--surface); border-bottom: 1px solid var(--border);
   }
-  .controls input {
-    flex: 1; max-width: 400px; padding: 8px 12px; border: 1px solid var(--border);
-    border-radius: 8px; font-size: 13px; outline: none;
+  .search-box {
+    position: relative; flex: 1; min-width: 200px; max-width: 400px;
   }
-  .controls input:focus { border-color: var(--accent); }
+  .search-box input {
+    width: 100%; padding: 8px 12px 8px 34px; border: 1px solid var(--border);
+    border-radius: var(--radius-sm); font-size: 13px; outline: none; transition: all .15s;
+  }
+  .search-box input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(0,113,227,.12); }
+  .search-box::before {
+    content: "\26B2"; position: absolute; left: 11px; top: 50%; transform: translateY(-50%);
+    color: var(--text3); font-size: 16px; pointer-events: none;
+  }
+  .search-box .clear-btn {
+    position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+    background: none; border: none; cursor: pointer; color: var(--text3); font-size: 14px;
+    display: none; padding: 2px 4px;
+  }
+  .search-box .clear-btn.show { display: block; }
+  .search-box .clear-btn:hover { color: var(--text); }
+
+  .filter-group { display: flex; align-items: center; gap: 6px; }
+  .filter-group select {
+    padding: 7px 10px; border: 1px solid var(--border); border-radius: var(--radius-sm);
+    font-size: 12px; outline: none; background: var(--surface); cursor: pointer; color: var(--text);
+  }
+  .filter-group select:focus { border-color: var(--accent); }
+
+  .toolbar-actions { display: flex; gap: 6px; margin-left: auto; }
+
+  .active-filters {
+    display: flex; gap: 6px; padding: 0 24px 10px; flex-wrap: wrap;
+  }
+  .filter-pill {
+    font-size: 11px; padding: 3px 10px; background: var(--accent-bg); color: var(--accent);
+    border-radius: 99px; display: inline-flex; align-items: center; gap: 4px; font-weight: 500;
+  }
+  .filter-pill button {
+    background: none; border: none; cursor: pointer; color: var(--accent);
+    font-size: 13px; font-weight: 700; padding: 0; line-height: 1;
+  }
 
   /* ── Content area ── */
-  .content { padding: 0 24px 40px; }
+  .content { padding: 16px 24px 60px; }
 
   /* ── Module card ── */
   .module-card {
     background: var(--surface); border: 1px solid var(--border);
-    border-radius: var(--radius); margin-bottom: 12px; overflow: hidden;
+    border-radius: var(--radius); margin-bottom: 10px; overflow: hidden;
+    transition: box-shadow .15s;
   }
+  .module-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,.05); }
   .module-header {
-    padding: 14px 18px; display: flex; align-items: center; gap: 12px;
+    padding: 12px 16px; display: flex; align-items: center; gap: 10px;
     cursor: pointer; user-select: none; transition: background .1s;
   }
-  .module-header:hover { background: #fafafa; }
-  .module-header .arrow { font-size: 11px; color: var(--text2); transition: transform .2s; width: 16px; }
-  .module-header .arrow.open { transform: rotate(90deg); }
-  .module-header .title { font-weight: 600; font-size: 14px; flex: 1; }
-  .module-header .badge {
-    font-size: 11px; padding: 2px 8px; border-radius: 99px;
-    background: var(--tag-bg); color: var(--text2);
+  .module-header:hover { background: var(--surface2); }
+  .module-header .arrow {
+    font-size: 10px; color: var(--text3); transition: transform .2s; width: 14px;
+    flex-shrink: 0;
   }
-  .module-header .actions { display: flex; gap: 4px; }
-  .module-body { display: none; border-top: 1px solid var(--border); padding: 16px 18px; }
+  .module-header .arrow.open { transform: rotate(90deg); }
+  .module-header .mod-info { flex: 1; min-width: 0; }
+  .module-header .mod-title { font-weight: 600; font-size: 14px; }
+  .module-header .mod-id { font-size: 11px; color: var(--text3); font-family: 'SF Mono', Monaco, Consolas, monospace; }
+  .badge {
+    font-size: 11px; padding: 2px 8px; border-radius: 99px;
+    background: var(--tag-bg); color: var(--text2); white-space: nowrap; font-weight: 500;
+  }
+  .badge-accent { background: var(--accent-bg); color: var(--accent); }
+  .module-header .actions { display: flex; gap: 2px; opacity: 0; transition: opacity .15s; }
+  .module-header:hover .actions { opacity: 1; }
+  .module-body { display: none; border-top: 1px solid var(--border); }
   .module-body.open { display: block; }
-  .module-desc { font-size: 13px; color: var(--text2); margin-bottom: 12px; }
+  .module-body-inner { padding: 14px 16px; }
+  .module-desc { font-size: 13px; color: var(--text2); margin-bottom: 12px; line-height: 1.6; }
 
   /* ── Chunk row ── */
   .chunk-card {
-    background: #fafafa; border: 1px solid var(--border); border-radius: 8px;
-    margin-bottom: 8px; overflow: hidden;
+    background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius-sm);
+    margin-bottom: 6px; overflow: hidden;
   }
   .chunk-header {
-    padding: 10px 14px; display: flex; align-items: center; gap: 10px;
+    padding: 9px 12px; display: flex; align-items: center; gap: 8px;
     cursor: pointer; user-select: none; font-size: 13px;
   }
   .chunk-header:hover { background: #f2f2f7; }
-  .chunk-header .title { font-weight: 500; flex: 1; }
-  .chunk-body { display: none; border-top: 1px solid var(--border); padding: 12px 14px; }
+  .chunk-header .title { font-weight: 500; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .chunk-header .actions { display: flex; gap: 2px; opacity: 0; transition: opacity .15s; }
+  .chunk-header:hover .actions { opacity: 1; }
+  .chunk-body { display: none; border-top: 1px solid var(--border); padding: 12px; }
   .chunk-body.open { display: block; }
-  .chunk-meta { font-size: 12px; color: var(--text2); margin-bottom: 8px; }
-  .chunk-meta span { margin-right: 16px; }
+  .chunk-meta { font-size: 12px; color: var(--text2); margin-bottom: 8px; display: flex; gap: 12px; flex-wrap: wrap; }
+  .chunk-meta .meta-item { display: flex; align-items: center; gap: 4px; }
+  .chunk-meta .meta-label { font-weight: 600; color: var(--text3); text-transform: uppercase; font-size: 10px; letter-spacing: .3px; }
   .chunk-content {
-    font-size: 12px; background: #f0f0f5; padding: 10px; border-radius: 6px;
-    max-height: 200px; overflow-y: auto; white-space: pre-wrap;
-    margin-bottom: 10px; font-family: 'SF Mono', Monaco, Consolas, monospace;
+    font-size: 12px; background: #f0f0f5; padding: 10px 12px; border-radius: 6px;
+    max-height: 180px; overflow-y: auto; white-space: pre-wrap;
+    margin-bottom: 10px; font-family: 'SF Mono', Monaco, Consolas, monospace; line-height: 1.6;
   }
   .tags { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 10px; }
   .tag {
@@ -120,64 +181,132 @@
     border-radius: 99px; color: var(--text2);
   }
 
-  /* ── QA pair ── */
+  /* ── QA pairs ── */
   .qa-section { margin-top: 10px; }
-  .qa-section h4 { font-size: 12px; color: var(--text2); margin-bottom: 6px; text-transform: uppercase; letter-spacing: .5px; }
-  .qa-item {
-    padding: 8px 10px; border-left: 3px solid var(--accent);
-    background: #fff; margin-bottom: 6px; border-radius: 0 6px 6px 0;
-    font-size: 12px;
+  .qa-section-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px solid var(--border);
   }
-  .qa-item .q { font-weight: 600; margin-bottom: 4px; }
-  .qa-item .a { color: var(--text2); }
-  .qa-item .qa-actions { margin-top: 4px; display: flex; gap: 4px; }
+  .qa-section-header h4 { font-size: 12px; color: var(--text2); text-transform: uppercase; letter-spacing: .5px; font-weight: 600; }
+  .qa-item {
+    padding: 10px 12px; border-left: 3px solid var(--accent);
+    background: #fff; margin-bottom: 6px; border-radius: 0 8px 8px 0;
+    font-size: 12px; transition: border-color .15s; position: relative;
+  }
+  .qa-item:hover { border-left-color: var(--accent-hover); }
+  .qa-item .q { font-weight: 600; margin-bottom: 4px; color: var(--text); }
+  .qa-item .a { color: var(--text2); line-height: 1.6; }
+  .qa-item .qa-actions {
+    position: absolute; top: 8px; right: 8px; display: flex; gap: 2px;
+    opacity: 0; transition: opacity .15s;
+  }
+  .qa-item:hover .qa-actions { opacity: 1; }
 
   /* ── Modal ── */
   .modal-overlay {
-    display: none; position: fixed; inset: 0; background: rgba(0,0,0,.4);
-    z-index: 1000; justify-content: center; align-items: center;
+    display: none; position: fixed; inset: 0; background: rgba(0,0,0,.45);
+    z-index: 1000; justify-content: center; align-items: flex-start;
+    padding: 40px 20px; overflow-y: auto; backdrop-filter: blur(4px);
   }
   .modal-overlay.open { display: flex; }
   .modal {
-    background: var(--surface); border-radius: 14px; width: 90%; max-width: 600px;
-    max-height: 90vh; overflow-y: auto; padding: 24px;
-    box-shadow: 0 20px 60px rgba(0,0,0,.3);
+    background: var(--surface); border-radius: 16px; width: 100%; max-width: 640px;
+    padding: 28px; box-shadow: 0 24px 80px rgba(0,0,0,.25); animation: modalIn .2s ease;
   }
-  .modal h2 { font-size: 18px; margin-bottom: 16px; }
-  .modal label { display: block; font-size: 13px; font-weight: 500; margin-bottom: 4px; margin-top: 12px; }
+  @keyframes modalIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+  .modal h2 { font-size: 18px; font-weight: 700; margin-bottom: 4px; }
+  .modal .modal-subtitle { font-size: 13px; color: var(--text2); margin-bottom: 16px; }
+  .modal label { display: block; font-size: 12px; font-weight: 600; margin-bottom: 4px; margin-top: 14px; color: var(--text2); text-transform: uppercase; letter-spacing: .3px; }
   .modal input, .modal textarea, .modal select {
-    width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px;
-    font-size: 13px; font-family: inherit; outline: none;
+    width: 100%; padding: 9px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm);
+    font-size: 13px; font-family: inherit; outline: none; transition: all .15s;
   }
-  .modal input:focus, .modal textarea:focus { border-color: var(--accent); }
-  .modal textarea { resize: vertical; min-height: 80px; }
-  .modal .btn-row { display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px; }
+  .modal input:focus, .modal textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(0,113,227,.1); }
+  .modal textarea { resize: vertical; min-height: 80px; line-height: 1.6; }
+  .modal .btn-row { display: flex; justify-content: flex-end; gap: 8px; margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border); align-items: center; }
+  .modal .field-hint { font-size: 11px; color: var(--text3); margin-top: 2px; }
+
+  /* ── Bulk upload ── */
+  .upload-zone {
+    border: 2px dashed var(--border); border-radius: var(--radius); padding: 32px 20px;
+    text-align: center; cursor: pointer; transition: all .2s; margin-top: 12px;
+  }
+  .upload-zone:hover, .upload-zone.drag { border-color: var(--accent); background: var(--accent-bg); }
+  .upload-zone .icon { font-size: 36px; margin-bottom: 8px; }
+  .upload-zone .uz-label { font-size: 14px; font-weight: 500; }
+  .upload-zone .hint { font-size: 12px; color: var(--text2); margin-top: 4px; }
+  .upload-zone input[type="file"] { display: none; }
+
+  .upload-preview {
+    margin-top: 16px; padding: 14px; background: var(--surface2); border-radius: var(--radius-sm);
+    border: 1px solid var(--border); max-height: 300px; overflow-y: auto;
+  }
+  .upload-preview .preview-header { font-size: 13px; font-weight: 600; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+  .upload-preview .preview-item { font-size: 12px; padding: 4px 0; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; }
+  .upload-preview .preview-item:last-child { border-bottom: none; }
+  .upload-progress { margin-top: 12px; }
+  .progress-bar { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
+  .progress-bar .fill { height: 100%; background: var(--accent); transition: width .3s; border-radius: 3px; }
+  .progress-text { font-size: 12px; color: var(--text2); margin-top: 4px; text-align: center; }
+
+  /* ── Tabs ── */
+  .tab-bar { display: flex; gap: 0; border-bottom: 2px solid var(--border); margin-bottom: 16px; }
+  .tab {
+    padding: 8px 16px; font-size: 13px; font-weight: 500; cursor: pointer;
+    border-bottom: 2px solid transparent; margin-bottom: -2px; color: var(--text2);
+    transition: all .15s;
+  }
+  .tab:hover { color: var(--text); }
+  .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
 
   /* ── Toast ── */
-  .toast {
-    position: fixed; bottom: 24px; right: 24px; padding: 12px 20px;
-    background: #333; color: #fff; border-radius: 10px; font-size: 13px;
-    z-index: 2000; opacity: 0; transition: opacity .3s; pointer-events: none;
+  .toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 2000; display: flex; flex-direction: column; gap: 8px; }
+  .toast-msg {
+    padding: 12px 20px; background: #1d1d1f; color: #fff; border-radius: 10px;
+    font-size: 13px; opacity: 0; transition: all .3s; transform: translateY(10px);
+    display: flex; align-items: center; gap: 8px; max-width: 360px;
   }
-  .toast.show { opacity: 1; }
+  .toast-msg.show { opacity: 1; transform: translateY(0); }
+  .toast-msg.error { background: var(--danger); }
+  .toast-msg.success { background: #1b7a1b; }
 
   /* ── Loading ── */
-  .loading { text-align: center; padding: 40px; color: var(--text2); }
+  .loading { text-align: center; padding: 60px 20px; color: var(--text2); }
+  .loading .icon { font-size: 40px; margin-bottom: 12px; }
   .spinner {
     display: inline-block; width: 24px; height: 24px; border: 3px solid var(--border);
     border-top-color: var(--accent); border-radius: 50%;
     animation: spin .8s linear infinite;
   }
   @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── Empty state ── */
+  .empty-state { text-align: center; padding: 60px 20px; }
+  .empty-state .icon { font-size: 48px; margin-bottom: 12px; }
+  .empty-state .title { font-size: 16px; font-weight: 600; margin-bottom: 4px; }
+  .empty-state .desc { font-size: 13px; color: var(--text2); }
+
+  /* ── Responsive ── */
+  @media (max-width: 768px) {
+    .header { padding: 12px 16px; }
+    .toolbar { padding: 12px 16px; }
+    .content { padding: 12px 16px 60px; }
+    .stats { flex-wrap: wrap; }
+    .stat { min-width: 50%; }
+    .toolbar-actions { width: 100%; justify-content: flex-end; }
+    .module-header .actions { opacity: 1; }
+    .chunk-header .actions { opacity: 1; }
+    .qa-item .qa-actions { opacity: 1; }
+  }
 </style>
 </head>
 <body>
 
 <!-- ── Header ── -->
 <div class="header">
-  <h1>Third Intelligence Admin</h1>
+  <h1>Third <span>Intelligence</span> Admin</h1>
   <div class="url-group">
-    <input id="convexUrl" placeholder="Convex Deployment URL (https://xxx.convex.cloud)" />
+    <input id="convexUrl" placeholder="Convex URL (https://xxx.convex.cloud)" />
     <button class="btn btn-primary btn-sm" onclick="connect()">Connect</button>
     <span id="connStatus" class="status pending">Not connected</span>
   </div>
@@ -185,21 +314,49 @@
 
 <!-- ── Stats ── -->
 <div class="stats" id="statsBar">
-  <div class="stat"><div class="num" id="statMods">—</div><div class="label">Modules</div></div>
-  <div class="stat"><div class="num" id="statChunks">—</div><div class="label">Chunks</div></div>
-  <div class="stat"><div class="num" id="statQA">—</div><div class="label">QA Pairs</div></div>
+  <div class="stat"><div class="num" id="statMods">&mdash;</div><div class="label">Modules</div></div>
+  <div class="stat"><div class="num" id="statChunks">&mdash;</div><div class="label">Chunks</div></div>
+  <div class="stat"><div class="num" id="statQA">&mdash;</div><div class="label">QA Pairs</div></div>
+  <div class="stat"><div class="num" id="statTags">&mdash;</div><div class="label">Unique Tags</div></div>
 </div>
 
-<!-- ── Controls ── -->
-<div class="controls">
-  <input id="search" placeholder="Search modules, chunks, QA pairs..." oninput="filterModules()" />
-  <button class="btn btn-primary" onclick="showAddModule()">+ Module</button>
-  <button class="btn btn-ghost" onclick="refreshData()">Refresh</button>
+<!-- ── Toolbar ── -->
+<div class="toolbar">
+  <div class="search-box">
+    <input id="search" placeholder="Search modules, chunks, QA pairs...  (Ctrl+K)" oninput="onSearchInput()" />
+    <button class="clear-btn" id="searchClear" onclick="clearSearch()">&times;</button>
+  </div>
+  <div class="filter-group">
+    <select id="filterModule" onchange="applyFilters()">
+      <option value="">All Modules</option>
+    </select>
+    <select id="filterTag" onchange="applyFilters()">
+      <option value="">All Tags</option>
+    </select>
+    <select id="filterPriority" onchange="applyFilters()">
+      <option value="">All Priorities</option>
+      <option value="1">Priority 1 (Highest)</option>
+      <option value="2">Priority 2</option>
+      <option value="3">Priority 3</option>
+      <option value="4">Priority 4</option>
+      <option value="5">Priority 5 (Lowest)</option>
+    </select>
+  </div>
+  <div class="toolbar-actions">
+    <button class="btn btn-outline btn-sm" onclick="toggleExpandAll()" id="btnExpandAll" title="Expand / Collapse all modules">&darr;&uarr; Expand All</button>
+    <button class="btn btn-outline btn-sm" onclick="showBulkUpload()" title="Upload JSON data">&uarr; Bulk Upload</button>
+    <button class="btn btn-outline btn-sm" onclick="exportData()" title="Export all data as JSON">&darr; Export</button>
+    <button class="btn btn-primary btn-sm" onclick="showAddModule()">+ Module</button>
+    <button class="btn btn-ghost btn-sm" onclick="refreshData()" title="Refresh data">&#8635;</button>
+  </div>
 </div>
+
+<!-- ── Active filters ── -->
+<div class="active-filters" id="activeFilters"></div>
 
 <!-- ── Content ── -->
 <div class="content" id="content">
-  <div class="loading">Enter your Convex URL above and click Connect</div>
+  <div class="loading"><div class="icon">&#128268;</div>Enter your Convex URL above and click Connect</div>
 </div>
 
 <!-- ── Modal ── -->
@@ -207,422 +364,867 @@
   <div class="modal" id="modal"></div>
 </div>
 
-<!-- ── Toast ── -->
-<div class="toast" id="toast"></div>
+<!-- ── Toast container ── -->
+<div class="toast-container" id="toastContainer"></div>
 
 <script>
-// ── State ──
+// ══════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════
 let CONVEX_URL = localStorage.getItem("convex_url") || "";
-let allModules = []; // raw Convex module docs
-let allChunks = {};  // moduleRef -> chunk[]
-let allQAPairs = {}; // chunkRef -> qa[]
+let allModules = [];
+let allChunks = {};   // moduleRef -> chunk[]
+let allQAPairs = {};  // chunkRef -> qa[]
+let allTagsSet = new Set();
+let expandedAll = false;
+let searchDebounce = null;
 
 document.getElementById("convexUrl").value = CONVEX_URL;
 
-// ── Convex HTTP helpers ──
-async function cQuery(path, args = {}) {
-  const res = await fetch(`${CONVEX_URL}/api/query`, {
+// ══════════════════════════════════════════
+//  CONVEX HTTP HELPERS
+// ══════════════════════════════════════════
+async function cQuery(path, args) {
+  const res = await fetch(CONVEX_URL + "/api/query", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ path, args, format: "json" }),
+    body: JSON.stringify({ path: path, args: args || {}, format: "json" }),
   });
   const data = await res.json();
   if (data.status !== "success") throw new Error(data.errorMessage || JSON.stringify(data));
   return data.value;
 }
 
-async function cMutation(path, args = {}) {
-  const res = await fetch(`${CONVEX_URL}/api/mutation`, {
+async function cMutation(path, args) {
+  const res = await fetch(CONVEX_URL + "/api/mutation", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ path, args, format: "json" }),
+    body: JSON.stringify({ path: path, args: args || {}, format: "json" }),
   });
   const data = await res.json();
   if (data.status !== "success") throw new Error(data.errorMessage || JSON.stringify(data));
   return data.value;
 }
 
-// ── Connection ──
+// ══════════════════════════════════════════
+//  CONNECTION
+// ══════════════════════════════════════════
 async function connect() {
-  const url = document.getElementById("convexUrl").value.trim().replace(/\/$/, "");
+  var url = document.getElementById("convexUrl").value.trim().replace(/\/$/, "");
   if (!url) return;
   CONVEX_URL = url;
   localStorage.setItem("convex_url", url);
-  const status = document.getElementById("connStatus");
+  var status = document.getElementById("connStatus");
   status.className = "status pending"; status.textContent = "Connecting...";
   try {
     await cQuery("modules:list");
     status.className = "status ok"; status.textContent = "Connected";
-    toast("Connected to Convex");
+    toast("Connected to Convex", "success");
     refreshData();
   } catch (e) {
     status.className = "status err"; status.textContent = "Failed";
-    toast("Connection failed: " + e.message);
+    toast("Connection failed: " + e.message, "error");
   }
 }
 
-// ── Data loading ──
+// ══════════════════════════════════════════
+//  DATA LOADING
+// ══════════════════════════════════════════
 async function refreshData() {
-  const el = document.getElementById("content");
-  el.innerHTML = '<div class="loading"><div class="spinner"></div><br>Loading...</div>';
+  var el = document.getElementById("content");
+  el.innerHTML = '<div class="loading"><div class="spinner"></div><br>Loading knowledge base...</div>';
   try {
     allModules = await cQuery("modules:list");
-    // Load chunks for all modules in parallel
-    const chunkPromises = allModules.map(m => cQuery("chunks:list", { moduleRef: m._id }));
-    const chunkResults = await Promise.all(chunkPromises);
-    allChunks = {};
-    const allChunkDocs = [];
-    allModules.forEach((m, i) => { allChunks[m._id] = chunkResults[i]; allChunkDocs.push(...chunkResults[i]); });
 
-    // Load QA pairs for all chunks in parallel (batch in groups of 50)
+    // Load all chunks in parallel
+    var chunkPromises = allModules.map(function(m) { return cQuery("chunks:list", { moduleRef: m._id }); });
+    var chunkResults = await Promise.all(chunkPromises);
+    allChunks = {};
+    var allChunkDocs = [];
+    allModules.forEach(function(m, i) { allChunks[m._id] = chunkResults[i]; allChunkDocs.push.apply(allChunkDocs, chunkResults[i]); });
+
+    // Load QA pairs in batches of 50
     allQAPairs = {};
-    for (let i = 0; i < allChunkDocs.length; i += 50) {
-      const batch = allChunkDocs.slice(i, i + 50);
-      const qaResults = await Promise.all(batch.map(c => cQuery("qaPairs:list", { chunkRef: c._id })));
-      batch.forEach((c, j) => { allQAPairs[c._id] = qaResults[j]; });
+    for (var i = 0; i < allChunkDocs.length; i += 50) {
+      var batch = allChunkDocs.slice(i, i + 50);
+      var qaResults = await Promise.all(batch.map(function(c) { return cQuery("qaPairs:list", { chunkRef: c._id }); }));
+      batch.forEach(function(c, j) { allQAPairs[c._id] = qaResults[j]; });
     }
 
+    // Collect unique tags
+    allTagsSet = new Set();
+    allChunkDocs.forEach(function(c) { (c.tags || []).forEach(function(t) { allTagsSet.add(t); }); });
+
     updateStats();
+    populateFilters();
     renderModules();
   } catch (e) {
-    el.innerHTML = `<div class="loading" style="color:var(--danger)">Error: ${esc(e.message)}</div>`;
+    el.innerHTML = '<div class="loading" style="color:var(--danger)">Error: ' + esc(e.message) + '</div>';
   }
 }
 
 function updateStats() {
   document.getElementById("statMods").textContent = allModules.length;
-  const totalChunks = Object.values(allChunks).reduce((s, c) => s + c.length, 0);
+  var totalChunks = 0; Object.values(allChunks).forEach(function(c) { totalChunks += c.length; });
   document.getElementById("statChunks").textContent = totalChunks;
-  const totalQA = Object.values(allQAPairs).reduce((s, q) => s + q.length, 0);
+  var totalQA = 0; Object.values(allQAPairs).forEach(function(q) { totalQA += q.length; });
   document.getElementById("statQA").textContent = totalQA;
+  document.getElementById("statTags").textContent = allTagsSet.size;
 }
 
-// ── Rendering ──
-function esc(s) { const d = document.createElement("div"); d.textContent = s || ""; return d.innerHTML; }
+function populateFilters() {
+  // Module filter
+  var modSel = document.getElementById("filterModule");
+  var currentMod = modSel.value;
+  modSel.innerHTML = '<option value="">All Modules</option>';
+  allModules.forEach(function(m) {
+    var opt = document.createElement("option");
+    opt.value = m._id; opt.textContent = m.title;
+    modSel.appendChild(opt);
+  });
+  modSel.value = currentMod;
+
+  // Tag filter
+  var tagSel = document.getElementById("filterTag");
+  var currentTag = tagSel.value;
+  tagSel.innerHTML = '<option value="">All Tags</option>';
+  Array.from(allTagsSet).sort().forEach(function(t) {
+    var opt = document.createElement("option");
+    opt.value = t; opt.textContent = t;
+    tagSel.appendChild(opt);
+  });
+  tagSel.value = currentTag;
+}
+
+// ══════════════════════════════════════════
+//  SEARCH & FILTERS
+// ══════════════════════════════════════════
+function onSearchInput() {
+  clearTimeout(searchDebounce);
+  var val = document.getElementById("search").value;
+  document.getElementById("searchClear").classList.toggle("show", val.length > 0);
+  searchDebounce = setTimeout(applyFilters, 200);
+}
+
+function clearSearch() {
+  document.getElementById("search").value = "";
+  document.getElementById("searchClear").classList.remove("show");
+  applyFilters();
+  document.getElementById("search").focus();
+}
+
+function applyFilters() {
+  renderModules();
+  renderActiveFilters();
+}
+
+var _filterClearers = [];
+function renderActiveFilters() {
+  var container = document.getElementById("activeFilters");
+  var pills = [];
+  _filterClearers = [];
+  var query = document.getElementById("search").value.trim();
+  var modFilter = document.getElementById("filterModule").value;
+  var tagFilter = document.getElementById("filterTag").value;
+  var priFilter = document.getElementById("filterPriority").value;
+
+  if (query) {
+    pills.push('Search: "' + query + '"');
+    _filterClearers.push(function() { document.getElementById("search").value = ""; document.getElementById("searchClear").classList.remove("show"); applyFilters(); });
+  }
+  if (modFilter) {
+    var m = allModules.find(function(x) { return x._id === modFilter; });
+    pills.push("Module: " + (m ? m.title : modFilter));
+    _filterClearers.push(function() { document.getElementById("filterModule").value = ""; applyFilters(); });
+  }
+  if (tagFilter) {
+    pills.push("Tag: " + tagFilter);
+    _filterClearers.push(function() { document.getElementById("filterTag").value = ""; applyFilters(); });
+  }
+  if (priFilter) {
+    pills.push("Priority: " + priFilter);
+    _filterClearers.push(function() { document.getElementById("filterPriority").value = ""; applyFilters(); });
+  }
+
+  if (pills.length === 0) { container.innerHTML = ""; return; }
+
+  var html = "";
+  for (var i = 0; i < pills.length; i++) {
+    html += '<span class="filter-pill">' + esc(pills[i]) + '<button onclick="clearFilterPill(' + i + ')">&times;</button></span>';
+  }
+  html += '<button class="btn btn-ghost btn-xs" onclick="clearAllFilters()">Clear all</button>';
+  container.innerHTML = html;
+}
+
+function clearFilterPill(i) {
+  if (_filterClearers[i]) _filterClearers[i]();
+}
+
+function clearAllFilters() {
+  document.getElementById("search").value = "";
+  document.getElementById("searchClear").classList.remove("show");
+  document.getElementById("filterModule").value = "";
+  document.getElementById("filterTag").value = "";
+  document.getElementById("filterPriority").value = "";
+  applyFilters();
+}
+
+function getFilteredModules() {
+  var query = document.getElementById("search").value.toLowerCase().trim();
+  var modFilter = document.getElementById("filterModule").value;
+  var tagFilter = document.getElementById("filterTag").value;
+  var priFilter = document.getElementById("filterPriority").value;
+
+  return allModules.filter(function(m) {
+    if (modFilter && m._id !== modFilter) return false;
+
+    var chunks = allChunks[m._id] || [];
+
+    // Check which chunks match tag/priority filters
+    var matchingChunks = chunks.filter(function(c) {
+      if (tagFilter && !(c.tags || []).includes(tagFilter)) return false;
+      if (priFilter && String(c.priority) !== priFilter) return false;
+      return true;
+    });
+
+    if ((tagFilter || priFilter) && matchingChunks.length === 0) return false;
+
+    // Text search
+    if (query) {
+      if (m.title.toLowerCase().indexOf(query) !== -1 || m.moduleId.toLowerCase().indexOf(query) !== -1 || (m.description || "").toLowerCase().indexOf(query) !== -1) return true;
+      return matchingChunks.some(function(c) {
+        if (c.title.toLowerCase().indexOf(query) !== -1) return true;
+        if (c.content && c.content.toLowerCase().indexOf(query) !== -1) return true;
+        if ((c.tags || []).some(function(t) { return t.toLowerCase().indexOf(query) !== -1; })) return true;
+        var qas = allQAPairs[c._id] || [];
+        return qas.some(function(q) { return q.instruction.toLowerCase().indexOf(query) !== -1 || q.output.toLowerCase().indexOf(query) !== -1; });
+      });
+    }
+    return true;
+  });
+}
+
+// ══════════════════════════════════════════
+//  RENDERING
+// ══════════════════════════════════════════
+function esc(s) { var d = document.createElement("div"); d.textContent = s || ""; return d.innerHTML; }
 
 function renderModules() {
-  const el = document.getElementById("content");
-  const query = document.getElementById("search").value.toLowerCase().trim();
+  var el = document.getElementById("content");
+  var filtered = getFilteredModules();
+  var query = document.getElementById("search").value.toLowerCase().trim();
+  var tagFilter = document.getElementById("filterTag").value;
+  var priFilter = document.getElementById("filterPriority").value;
 
-  const filtered = allModules.filter(m => {
-    if (!query) return true;
-    if (m.title.toLowerCase().includes(query) || m.moduleId.toLowerCase().includes(query)) return true;
-    const chunks = allChunks[m._id] || [];
-    return chunks.some(c => {
-      if (c.title.toLowerCase().includes(query)) return true;
-      if (c.content && c.content.toLowerCase().includes(query)) return true;
-      const qas = allQAPairs[c._id] || [];
-      return qas.some(q => q.instruction.toLowerCase().includes(query) || q.output.toLowerCase().includes(query));
-    });
-  });
-
+  if (allModules.length === 0) {
+    el.innerHTML = '<div class="empty-state"><div class="icon">&#128230;</div><div class="title">No modules yet</div><div class="desc">Click "+ Module" or use Bulk Upload to add data</div></div>';
+    return;
+  }
   if (filtered.length === 0) {
-    el.innerHTML = '<div class="loading">No modules found</div>';
+    el.innerHTML = '<div class="empty-state"><div class="icon">&#128269;</div><div class="title">No results found</div><div class="desc">Try adjusting your search or filters</div></div>';
     return;
   }
 
-  el.innerHTML = filtered.map(m => {
-    const chunks = allChunks[m._id] || [];
-    const qaCount = chunks.reduce((s, c) => s + (allQAPairs[c._id] || []).length, 0);
-    return `
-      <div class="module-card" data-id="${m._id}">
-        <div class="module-header" onclick="toggleModule('${m._id}')">
-          <span class="arrow" id="arrow-${m._id}">&#9654;</span>
-          <span class="title">${esc(m.title)}</span>
-          <span class="badge">${chunks.length} chunks</span>
-          <span class="badge">${qaCount} QA</span>
-          <div class="actions" onclick="event.stopPropagation()">
-            <button class="btn btn-ghost btn-sm" onclick="showEditModule('${m._id}')">Edit</button>
-            <button class="btn btn-danger btn-sm" onclick="deleteModule('${m._id}')">Delete</button>
-          </div>
-        </div>
-        <div class="module-body" id="body-${m._id}">
-          <div class="module-desc">${esc(m.description)}</div>
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-            <strong style="font-size:13px">Chunks</strong>
-            <button class="btn btn-primary btn-sm" onclick="showAddChunk('${m._id}')">+ Chunk</button>
-          </div>
-          ${chunks.map(c => renderChunk(c)).join("")}
-        </div>
-      </div>`;
-  }).join("");
+  var html = '<div style="font-size:12px;color:var(--text3);margin-bottom:10px">' + filtered.length + ' of ' + allModules.length + ' modules</div>';
+
+  for (var mi = 0; mi < filtered.length; mi++) {
+    var m = filtered[mi];
+    var chunks = allChunks[m._id] || [];
+    // Apply chunk-level filters for display
+    if (tagFilter) chunks = chunks.filter(function(c) { return (c.tags || []).includes(tagFilter); });
+    if (priFilter) chunks = chunks.filter(function(c) { return String(c.priority) === priFilter; });
+
+    var qaCount = 0;
+    chunks.forEach(function(c) { qaCount += (allQAPairs[c._id] || []).length; });
+    var isOpen = expandedAll;
+
+    html += '<div class="module-card" data-id="' + m._id + '">'
+      + '<div class="module-header" onclick="toggleModule(\'' + m._id + '\')">'
+      + '<span class="arrow' + (isOpen ? ' open' : '') + '" id="arrow-' + m._id + '">&#9654;</span>'
+      + '<div class="mod-info"><div class="mod-title">' + highlightText(m.title, query) + '</div><div class="mod-id">' + esc(m.moduleId) + '</div></div>'
+      + '<span class="badge">' + chunks.length + ' chunks</span>'
+      + '<span class="badge badge-accent">' + qaCount + ' QA</span>'
+      + '<div class="actions" onclick="event.stopPropagation()">'
+      + '<button class="btn btn-ghost btn-sm" onclick="showEditModule(\'' + m._id + '\')">Edit</button>'
+      + '<button class="btn btn-danger btn-sm" onclick="deleteModule(\'' + m._id + '\')">Delete</button>'
+      + '</div></div>'
+      + '<div class="module-body' + (isOpen ? ' open' : '') + '" id="body-' + m._id + '"><div class="module-body-inner">';
+
+    if (m.description) html += '<div class="module-desc">' + highlightText(m.description, query) + '</div>';
+
+    html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">'
+      + '<strong style="font-size:13px">Chunks (' + chunks.length + ')</strong>'
+      + '<button class="btn btn-primary btn-sm" onclick="showAddChunk(\'' + m._id + '\')">+ Chunk</button></div>';
+
+    for (var ci = 0; ci < chunks.length; ci++) {
+      html += renderChunk(chunks[ci], query);
+    }
+
+    html += '</div></div></div>';
+  }
+
+  el.innerHTML = html;
 }
 
-function renderChunk(c) {
-  const qas = allQAPairs[c._id] || [];
-  const tags = (c.tags || []).map(t => `<span class="tag">${esc(t)}</span>`).join("");
-  return `
-    <div class="chunk-card">
-      <div class="chunk-header" onclick="toggleChunk('${c._id}')">
-        <span class="arrow" id="arrow-${c._id}">&#9654;</span>
-        <span class="title">${esc(c.title)}</span>
-        <span class="badge">${qas.length} QA</span>
-        <div class="actions" onclick="event.stopPropagation()">
-          <button class="btn btn-ghost btn-sm" onclick="showEditChunk('${c._id}')">Edit</button>
-          <button class="btn btn-danger btn-sm" onclick="deleteChunk('${c._id}')">Delete</button>
-        </div>
-      </div>
-      <div class="chunk-body" id="body-${c._id}">
-        <div class="chunk-meta">
-          ${c.intent ? `<span>Intent: ${esc(c.intent)}</span>` : ""}
-          ${c.priority ? `<span>Priority: ${esc(c.priority)}</span>` : ""}
-          ${c.weight ? `<span>Weight: ${c.weight}</span>` : ""}
-          ${c.context ? `<span>Context: ${esc(c.context)}</span>` : ""}
-        </div>
-        ${tags ? `<div class="tags">${tags}</div>` : ""}
-        ${c.content ? `<div class="chunk-content">${esc(c.content)}</div>` : ""}
-        <div class="qa-section">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-            <h4>QA Pairs (${qas.length})</h4>
-            <button class="btn btn-primary btn-sm" onclick="showAddQA('${c._id}')">+ QA Pair</button>
-          </div>
-          ${qas.map(q => `
-            <div class="qa-item">
-              <div class="q">Q: ${esc(q.instruction)}</div>
-              <div class="a">A: ${esc(q.output)}</div>
-              <div class="qa-actions">
-                <button class="btn btn-ghost btn-sm" onclick="showEditQA('${q._id}')">Edit</button>
-                <button class="btn btn-danger btn-sm" onclick="deleteQA('${q._id}', '${c._id}')">Delete</button>
-              </div>
-            </div>
-          `).join("")}
-        </div>
-      </div>
-    </div>`;
+function renderChunk(c, query) {
+  var qas = allQAPairs[c._id] || [];
+  var tags = (c.tags || []).map(function(t) { return '<span class="tag">' + esc(t) + '</span>'; }).join("");
+  var contextArr = Array.isArray(c.context) ? c.context : (c.context ? [c.context] : []);
+
+  var html = '<div class="chunk-card">'
+    + '<div class="chunk-header" onclick="toggleChunk(\'' + c._id + '\')">'
+    + '<span class="arrow" id="arrow-' + c._id + '">&#9654;</span>'
+    + '<span class="title">' + highlightText(c.title, query) + '</span>'
+    + '<span class="badge">' + qas.length + ' QA</span>'
+    + '<div class="actions" onclick="event.stopPropagation()">'
+    + '<button class="btn btn-ghost btn-sm" onclick="showEditChunk(\'' + c._id + '\')">Edit</button>'
+    + '<button class="btn btn-danger btn-sm" onclick="deleteChunk(\'' + c._id + '\')">Delete</button>'
+    + '</div></div>'
+    + '<div class="chunk-body" id="body-' + c._id + '">'
+    + '<div class="chunk-meta">';
+
+  if (c.intent) html += '<div class="meta-item"><span class="meta-label">Intent</span> ' + esc(c.intent) + '</div>';
+  if (c.priority) html += '<div class="meta-item"><span class="meta-label">Priority</span> ' + c.priority + '</div>';
+  if (c.weight) html += '<div class="meta-item"><span class="meta-label">Weight</span> ' + c.weight + '</div>';
+  if (contextArr.length) html += '<div class="meta-item"><span class="meta-label">Context</span> ' + contextArr.map(function(x) { return esc(x); }).join(", ") + '</div>';
+
+  html += '</div>';
+  if (tags) html += '<div class="tags">' + tags + '</div>';
+  if (c.content) html += '<div class="chunk-content">' + highlightText(c.content, query) + '</div>';
+
+  html += '<div class="qa-section"><div class="qa-section-header"><h4>QA Pairs (' + qas.length + ')</h4>'
+    + '<button class="btn btn-primary btn-sm" onclick="showAddQA(\'' + c._id + '\')">+ QA Pair</button></div>';
+
+  for (var qi = 0; qi < qas.length; qi++) {
+    var q = qas[qi];
+    html += '<div class="qa-item"><div class="q">Q: ' + highlightText(q.instruction, query) + '</div>'
+      + '<div class="a">A: ' + highlightText(q.output, query) + '</div>'
+      + '<div class="qa-actions">'
+      + '<button class="btn btn-ghost btn-xs" onclick="showEditQA(\'' + q._id + '\')">Edit</button>'
+      + '<button class="btn btn-danger btn-xs" onclick="deleteQA(\'' + q._id + '\', \'' + c._id + '\')">Delete</button>'
+      + '</div></div>';
+  }
+
+  html += '</div></div></div>';
+  return html;
 }
 
-// ── Toggles ──
+function highlightText(text, query) {
+  if (!query || !text) return esc(text);
+  var escaped = esc(text);
+  var escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  try {
+    return escaped.replace(new RegExp("(" + escapedQuery + ")", "gi"), '<mark style="background:#fef08a;padding:0 1px;border-radius:2px">$1</mark>');
+  } catch (e) { return escaped; }
+}
+
+// ══════════════════════════════════════════
+//  TOGGLES
+// ══════════════════════════════════════════
 function toggleModule(id) {
-  const body = document.getElementById("body-" + id);
-  const arrow = document.getElementById("arrow-" + id);
-  body.classList.toggle("open");
-  arrow.classList.toggle("open");
+  var body = document.getElementById("body-" + id);
+  var arrow = document.getElementById("arrow-" + id);
+  if (body && arrow) { body.classList.toggle("open"); arrow.classList.toggle("open"); }
 }
 function toggleChunk(id) {
-  const body = document.getElementById("body-" + id);
-  const arrow = document.getElementById("arrow-" + id);
-  body.classList.toggle("open");
-  arrow.classList.toggle("open");
+  var body = document.getElementById("body-" + id);
+  var arrow = document.getElementById("arrow-" + id);
+  if (body && arrow) { body.classList.toggle("open"); arrow.classList.toggle("open"); }
 }
-function filterModules() { renderModules(); }
+function toggleExpandAll() {
+  expandedAll = !expandedAll;
+  document.getElementById("btnExpandAll").innerHTML = expandedAll ? "&darr;&uarr; Collapse All" : "&darr;&uarr; Expand All";
+  renderModules();
+}
 
-// ── Modal helpers ──
-function openModal(html) { document.getElementById("modal").innerHTML = html; document.getElementById("modalOverlay").classList.add("open"); }
+// ══════════════════════════════════════════
+//  MODAL HELPERS
+// ══════════════════════════════════════════
+function openModal(html) {
+  document.getElementById("modal").innerHTML = html;
+  document.getElementById("modalOverlay").classList.add("open");
+  setTimeout(function() { var inp = document.querySelector('#modal input, #modal textarea'); if (inp) inp.focus(); }, 100);
+}
 function closeModal() { document.getElementById("modalOverlay").classList.remove("open"); }
 function closeModalIf(e) { if (e.target === e.currentTarget) closeModal(); }
-function toast(msg) {
-  const t = document.getElementById("toast"); t.textContent = msg; t.classList.add("show");
-  setTimeout(() => t.classList.remove("show"), 3000);
+
+function toast(msg, type) {
+  var container = document.getElementById("toastContainer");
+  var el = document.createElement("div");
+  el.className = "toast-msg " + (type || "");
+  el.textContent = msg;
+  container.appendChild(el);
+  requestAnimationFrame(function() { el.classList.add("show"); });
+  setTimeout(function() {
+    el.classList.remove("show");
+    setTimeout(function() { el.remove(); }, 300);
+  }, 3500);
 }
 
-// ── Module CRUD ──
+// ══════════════════════════════════════════
+//  MODULE CRUD
+// ══════════════════════════════════════════
 function showAddModule() {
-  openModal(`
-    <h2>Add Module</h2>
-    <label>Module ID (slug)</label><input id="f_moduleId" placeholder="e.g. brm_special_hot" />
-    <label>Title</label><input id="f_title" />
-    <label>Description</label><textarea id="f_desc"></textarea>
-    <div class="btn-row">
-      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
-      <button class="btn btn-primary" onclick="saveAddModule()">Create</button>
-    </div>
-  `);
+  openModal(
+    '<h2>Add Module</h2>'
+    + '<p class="modal-subtitle">Create a new knowledge module</p>'
+    + '<label>Module ID (slug)</label>'
+    + '<input id="f_moduleId" placeholder="e.g. brm_special_hot" />'
+    + '<div class="field-hint">Unique identifier, use snake_case</div>'
+    + '<label>Title</label><input id="f_title" placeholder="e.g. BRM \u2013 Special Hot Beverages" />'
+    + '<label>Description</label><textarea id="f_desc" placeholder="Brief description of this module..."></textarea>'
+    + '<div class="btn-row">'
+    + '<button class="btn btn-ghost" onclick="closeModal()">Cancel</button>'
+    + '<button class="btn btn-primary" onclick="saveAddModule()">Create Module</button>'
+    + '</div>'
+  );
 }
 async function saveAddModule() {
+  var moduleId = document.getElementById("f_moduleId").value.trim();
+  var title = document.getElementById("f_title").value.trim();
+  if (!moduleId || !title) { toast("Module ID and Title are required", "error"); return; }
   try {
     await cMutation("modules:create", {
-      moduleId: document.getElementById("f_moduleId").value.trim(),
-      title: document.getElementById("f_title").value.trim(),
+      moduleId: moduleId, title: title,
       description: document.getElementById("f_desc").value.trim(),
     });
-    closeModal(); toast("Module created"); refreshData();
-  } catch (e) { toast("Error: " + e.message); }
+    closeModal(); toast("Module created", "success"); refreshData();
+  } catch (e) { toast("Error: " + e.message, "error"); }
 }
 
 function showEditModule(id) {
-  const m = allModules.find(x => x._id === id);
+  var m = allModules.find(function(x) { return x._id === id; });
   if (!m) return;
-  openModal(`
-    <h2>Edit Module</h2>
-    <label>Title</label><input id="f_title" value="${esc(m.title)}" />
-    <label>Description</label><textarea id="f_desc">${esc(m.description)}</textarea>
-    <div class="btn-row">
-      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
-      <button class="btn btn-primary" onclick="saveEditModule('${id}')">Save</button>
-    </div>
-  `);
+  openModal(
+    '<h2>Edit Module</h2>'
+    + '<p class="modal-subtitle">' + esc(m.moduleId) + '</p>'
+    + '<label>Title</label><input id="f_title" value="' + esc(m.title) + '" />'
+    + '<label>Description</label><textarea id="f_desc">' + esc(m.description) + '</textarea>'
+    + '<div class="btn-row">'
+    + '<button class="btn btn-ghost" onclick="closeModal()">Cancel</button>'
+    + '<button class="btn btn-primary" onclick="saveEditModule(\'' + id + '\')">Save Changes</button>'
+    + '</div>'
+  );
 }
 async function saveEditModule(id) {
   try {
     await cMutation("modules:update", {
-      id,
+      id: id,
       title: document.getElementById("f_title").value.trim(),
       description: document.getElementById("f_desc").value.trim(),
     });
-    closeModal(); toast("Module updated"); refreshData();
-  } catch (e) { toast("Error: " + e.message); }
+    closeModal(); toast("Module updated", "success"); refreshData();
+  } catch (e) { toast("Error: " + e.message, "error"); }
 }
 
 async function deleteModule(id) {
-  const m = allModules.find(x => x._id === id);
-  if (!confirm(`Delete "${m?.title}" and ALL its chunks & QA pairs?`)) return;
+  var m = allModules.find(function(x) { return x._id === id; });
+  var chunks = allChunks[id] || [];
+  var qaCount = 0; chunks.forEach(function(c) { qaCount += (allQAPairs[c._id] || []).length; });
+  if (!confirm('Delete "' + (m ? m.title : "") + '"?\n\nThis will also delete ' + chunks.length + ' chunks and ' + qaCount + ' QA pairs. This cannot be undone.')) return;
   try {
-    await cMutation("modules:remove", { id });
-    toast("Module deleted"); refreshData();
-  } catch (e) { toast("Error: " + e.message); }
+    await cMutation("modules:remove", { id: id });
+    toast("Module deleted", "success"); refreshData();
+  } catch (e) { toast("Error: " + e.message, "error"); }
 }
 
-// ── Chunk CRUD ──
+// ══════════════════════════════════════════
+//  CHUNK CRUD
+// ══════════════════════════════════════════
 function showAddChunk(moduleRef) {
-  openModal(`
-    <h2>Add Chunk</h2>
-    <label>Chunk ID</label><input id="f_chunkId" placeholder="e.g. my_chunk_1" />
-    <label>Title</label><input id="f_title" />
-    <label>Intent</label><input id="f_intent" />
-    <label>Content</label><textarea id="f_content" style="min-height:120px"></textarea>
-    <label>Tags (comma-separated)</label><input id="f_tags" />
-    <label>Context</label><input id="f_context" />
-    <label>Priority</label><input id="f_priority" placeholder="high / medium / low" />
-    <div class="btn-row">
-      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
-      <button class="btn btn-primary" onclick="saveAddChunk('${moduleRef}')">Create</button>
-    </div>
-  `);
+  openModal(
+    '<h2>Add Chunk</h2>'
+    + '<p class="modal-subtitle">Add a new knowledge chunk to this module</p>'
+    + '<label>Chunk ID</label><input id="f_chunkId" placeholder="e.g. my_chunk_1" />'
+    + '<div class="field-hint">Unique identifier within the module</div>'
+    + '<label>Title</label><input id="f_title" placeholder="Chunk title" />'
+    + '<label>Intent</label><input id="f_intent" placeholder="e.g. preparation, troubleshooting" />'
+    + '<label>Content</label><textarea id="f_content" style="min-height:120px" placeholder="Main content / knowledge text..."></textarea>'
+    + '<label>Tags (comma-separated)</label><input id="f_tags" placeholder="e.g. espresso, dial-in, hot" />'
+    + '<label>Context (comma-separated)</label><input id="f_context" placeholder="e.g. all_roles, onboarding" />'
+    + '<label>Priority (1-5)</label><input id="f_priority" type="number" min="1" max="5" placeholder="1 = highest" />'
+    + '<label>Weight</label><input id="f_weight" type="number" step="0.1" placeholder="e.g. 1.0" />'
+    + '<div class="btn-row">'
+    + '<button class="btn btn-ghost" onclick="closeModal()">Cancel</button>'
+    + '<button class="btn btn-primary" onclick="saveAddChunk(\'' + moduleRef + '\')">Create Chunk</button>'
+    + '</div>'
+  );
 }
 async function saveAddChunk(moduleRef) {
-  const tags = document.getElementById("f_tags").value.split(",").map(t => t.trim()).filter(Boolean);
+  var chunkId = document.getElementById("f_chunkId").value.trim();
+  var title = document.getElementById("f_title").value.trim();
+  if (!chunkId || !title) { toast("Chunk ID and Title are required", "error"); return; }
+  var tags = document.getElementById("f_tags").value.split(",").map(function(t) { return t.trim(); }).filter(Boolean);
+  var context = document.getElementById("f_context").value.split(",").map(function(t) { return t.trim(); }).filter(Boolean);
+  var priority = document.getElementById("f_priority").value ? Number(document.getElementById("f_priority").value) : undefined;
+  var weight = document.getElementById("f_weight").value ? Number(document.getElementById("f_weight").value) : undefined;
   try {
     await cMutation("chunks:create", {
-      moduleRef,
-      chunkId: document.getElementById("f_chunkId").value.trim(),
-      title: document.getElementById("f_title").value.trim(),
+      moduleRef: moduleRef, chunkId: chunkId, title: title,
       intent: document.getElementById("f_intent").value.trim() || undefined,
       content: document.getElementById("f_content").value.trim() || undefined,
       tags: tags.length ? tags : undefined,
-      context: document.getElementById("f_context").value.trim() || undefined,
-      priority: document.getElementById("f_priority").value.trim() || undefined,
+      context: context.length ? context : undefined,
+      priority: priority,
+      weight: weight,
     });
-    closeModal(); toast("Chunk created"); refreshData();
-  } catch (e) { toast("Error: " + e.message); }
+    closeModal(); toast("Chunk created", "success"); refreshData();
+  } catch (e) { toast("Error: " + e.message, "error"); }
 }
 
 function findChunk(id) {
-  for (const arr of Object.values(allChunks)) {
-    const c = arr.find(x => x._id === id);
+  var arrs = Object.values(allChunks);
+  for (var i = 0; i < arrs.length; i++) {
+    var c = arrs[i].find(function(x) { return x._id === id; });
     if (c) return c;
   }
   return null;
 }
 
 function showEditChunk(id) {
-  const c = findChunk(id);
+  var c = findChunk(id);
   if (!c) return;
-  openModal(`
-    <h2>Edit Chunk</h2>
-    <label>Title</label><input id="f_title" value="${esc(c.title)}" />
-    <label>Intent</label><input id="f_intent" value="${esc(c.intent || '')}" />
-    <label>Content</label><textarea id="f_content" style="min-height:120px">${esc(c.content || '')}</textarea>
-    <label>Tags (comma-separated)</label><input id="f_tags" value="${esc((c.tags || []).join(', '))}" />
-    <label>Context</label><input id="f_context" value="${esc(c.context || '')}" />
-    <label>Priority</label><input id="f_priority" value="${esc(c.priority || '')}" />
-    <div class="btn-row">
-      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
-      <button class="btn btn-primary" onclick="saveEditChunk('${id}')">Save</button>
-    </div>
-  `);
+  var contextArr = Array.isArray(c.context) ? c.context : (c.context ? [c.context] : []);
+  openModal(
+    '<h2>Edit Chunk</h2>'
+    + '<p class="modal-subtitle">' + esc(c.chunkId) + '</p>'
+    + '<label>Title</label><input id="f_title" value="' + esc(c.title) + '" />'
+    + '<label>Intent</label><input id="f_intent" value="' + esc(c.intent || '') + '" />'
+    + '<label>Content</label><textarea id="f_content" style="min-height:120px">' + esc(c.content || '') + '</textarea>'
+    + '<label>Tags (comma-separated)</label><input id="f_tags" value="' + esc((c.tags || []).join(', ')) + '" />'
+    + '<label>Context (comma-separated)</label><input id="f_context" value="' + esc(contextArr.join(', ')) + '" />'
+    + '<label>Priority (1-5)</label><input id="f_priority" type="number" min="1" max="5" value="' + (c.priority || '') + '" />'
+    + '<label>Weight</label><input id="f_weight" type="number" step="0.1" value="' + (c.weight || '') + '" />'
+    + '<div class="btn-row">'
+    + '<button class="btn btn-ghost" onclick="closeModal()">Cancel</button>'
+    + '<button class="btn btn-primary" onclick="saveEditChunk(\'' + id + '\')">Save Changes</button>'
+    + '</div>'
+  );
 }
 async function saveEditChunk(id) {
-  const tags = document.getElementById("f_tags").value.split(",").map(t => t.trim()).filter(Boolean);
+  var tags = document.getElementById("f_tags").value.split(",").map(function(t) { return t.trim(); }).filter(Boolean);
+  var context = document.getElementById("f_context").value.split(",").map(function(t) { return t.trim(); }).filter(Boolean);
+  var priority = document.getElementById("f_priority").value ? Number(document.getElementById("f_priority").value) : undefined;
+  var weight = document.getElementById("f_weight").value ? Number(document.getElementById("f_weight").value) : undefined;
   try {
     await cMutation("chunks:update", {
-      id,
+      id: id,
       title: document.getElementById("f_title").value.trim(),
       intent: document.getElementById("f_intent").value.trim() || undefined,
       content: document.getElementById("f_content").value.trim() || undefined,
       tags: tags.length ? tags : undefined,
-      context: document.getElementById("f_context").value.trim() || undefined,
-      priority: document.getElementById("f_priority").value.trim() || undefined,
+      context: context.length ? context : undefined,
+      priority: priority,
+      weight: weight,
     });
-    closeModal(); toast("Chunk updated"); refreshData();
-  } catch (e) { toast("Error: " + e.message); }
+    closeModal(); toast("Chunk updated", "success"); refreshData();
+  } catch (e) { toast("Error: " + e.message, "error"); }
 }
 
 async function deleteChunk(id) {
-  const c = findChunk(id);
-  if (!confirm(`Delete chunk "${c?.title}" and all its QA pairs?`)) return;
+  var c = findChunk(id);
+  var qaCount = (allQAPairs[id] || []).length;
+  if (!confirm('Delete chunk "' + (c ? c.title : "") + '"?\n\nThis will also delete ' + qaCount + ' QA pairs. This cannot be undone.')) return;
   try {
-    await cMutation("chunks:remove", { id });
-    toast("Chunk deleted"); refreshData();
-  } catch (e) { toast("Error: " + e.message); }
+    await cMutation("chunks:remove", { id: id });
+    toast("Chunk deleted", "success"); refreshData();
+  } catch (e) { toast("Error: " + e.message, "error"); }
 }
 
-// ── QA Pair CRUD ──
+// ══════════════════════════════════════════
+//  QA PAIR CRUD
+// ══════════════════════════════════════════
 function showAddQA(chunkRef) {
-  openModal(`
-    <h2>Add QA Pair</h2>
-    <label>Question (instruction)</label><textarea id="f_instruction" style="min-height:60px"></textarea>
-    <label>Answer (output)</label><textarea id="f_output" style="min-height:100px"></textarea>
-    <div class="btn-row">
-      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
-      <button class="btn btn-primary" onclick="saveAddQA('${chunkRef}')">Create</button>
-    </div>
-  `);
+  openModal(
+    '<h2>Add QA Pair</h2>'
+    + '<p class="modal-subtitle">Add a question-answer pair to this chunk</p>'
+    + '<label>Question (instruction)</label><textarea id="f_instruction" style="min-height:60px" placeholder="What question should trigger this answer?"></textarea>'
+    + '<label>Answer (output)</label><textarea id="f_output" style="min-height:120px" placeholder="The expected answer..."></textarea>'
+    + '<div class="btn-row">'
+    + '<button class="btn btn-ghost" onclick="closeModal()">Cancel</button>'
+    + '<button class="btn btn-primary" onclick="saveAddQA(\'' + chunkRef + '\')">Create QA Pair</button>'
+    + '</div>'
+  );
 }
 async function saveAddQA(chunkRef) {
+  var instruction = document.getElementById("f_instruction").value.trim();
+  var output = document.getElementById("f_output").value.trim();
+  if (!instruction || !output) { toast("Both question and answer are required", "error"); return; }
   try {
-    await cMutation("qaPairs:create", {
-      chunkRef,
-      instruction: document.getElementById("f_instruction").value.trim(),
-      output: document.getElementById("f_output").value.trim(),
-    });
-    closeModal(); toast("QA pair created"); refreshData();
-  } catch (e) { toast("Error: " + e.message); }
+    await cMutation("qaPairs:create", { chunkRef: chunkRef, instruction: instruction, output: output });
+    closeModal(); toast("QA pair created", "success"); refreshData();
+  } catch (e) { toast("Error: " + e.message, "error"); }
 }
 
 function findQA(id) {
-  for (const arr of Object.values(allQAPairs)) {
-    const q = arr.find(x => x._id === id);
+  var arrs = Object.values(allQAPairs);
+  for (var i = 0; i < arrs.length; i++) {
+    var q = arrs[i].find(function(x) { return x._id === id; });
     if (q) return q;
   }
   return null;
 }
 
 function showEditQA(id) {
-  const q = findQA(id);
+  var q = findQA(id);
   if (!q) return;
-  openModal(`
-    <h2>Edit QA Pair</h2>
-    <label>Question (instruction)</label><textarea id="f_instruction" style="min-height:60px">${esc(q.instruction)}</textarea>
-    <label>Answer (output)</label><textarea id="f_output" style="min-height:100px">${esc(q.output)}</textarea>
-    <div class="btn-row">
-      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
-      <button class="btn btn-primary" onclick="saveEditQA('${id}')">Save</button>
-    </div>
-  `);
+  openModal(
+    '<h2>Edit QA Pair</h2>'
+    + '<label>Question (instruction)</label><textarea id="f_instruction" style="min-height:60px">' + esc(q.instruction) + '</textarea>'
+    + '<label>Answer (output)</label><textarea id="f_output" style="min-height:120px">' + esc(q.output) + '</textarea>'
+    + '<div class="btn-row">'
+    + '<button class="btn btn-ghost" onclick="closeModal()">Cancel</button>'
+    + '<button class="btn btn-primary" onclick="saveEditQA(\'' + id + '\')">Save Changes</button>'
+    + '</div>'
+  );
 }
 async function saveEditQA(id) {
   try {
     await cMutation("qaPairs:update", {
-      id,
+      id: id,
       instruction: document.getElementById("f_instruction").value.trim(),
       output: document.getElementById("f_output").value.trim(),
     });
-    closeModal(); toast("QA pair updated"); refreshData();
-  } catch (e) { toast("Error: " + e.message); }
+    closeModal(); toast("QA pair updated", "success"); refreshData();
+  } catch (e) { toast("Error: " + e.message, "error"); }
 }
 
 async function deleteQA(id, chunkId) {
-  if (!confirm("Delete this QA pair?")) return;
+  if (!confirm("Delete this QA pair? This cannot be undone.")) return;
   try {
-    await cMutation("qaPairs:remove", { id });
-    toast("QA pair deleted"); refreshData();
-  } catch (e) { toast("Error: " + e.message); }
+    await cMutation("qaPairs:remove", { id: id });
+    toast("QA pair deleted", "success"); refreshData();
+  } catch (e) { toast("Error: " + e.message, "error"); }
 }
 
-// ── Auto-connect on load ──
-if (CONVEX_URL) {
-  connect();
+// ══════════════════════════════════════════
+//  BULK UPLOAD
+// ══════════════════════════════════════════
+var bulkData = null;
+
+function showBulkUpload() {
+  bulkData = null;
+  openModal(
+    '<h2>Bulk Upload</h2>'
+    + '<p class="modal-subtitle">Upload a data.json file to import modules, chunks, and QA pairs</p>'
+    + '<div class="tab-bar">'
+    + '<div class="tab active" onclick="switchBulkTab(\'file\', this)">Upload File</div>'
+    + '<div class="tab" onclick="switchBulkTab(\'paste\', this)">Paste JSON</div>'
+    + '</div>'
+    + '<div id="bulkTabFile">'
+    + '<div class="upload-zone" id="uploadZone" onclick="document.getElementById(\'fileInput\').click()"'
+    + ' ondragover="event.preventDefault(); this.classList.add(\'drag\')"'
+    + ' ondragleave="this.classList.remove(\'drag\')"'
+    + ' ondrop="event.preventDefault(); this.classList.remove(\'drag\'); handleFileDrop(event)">'
+    + '<div class="icon">&#128196;</div>'
+    + '<div class="uz-label">Drop your JSON file here or click to browse</div>'
+    + '<div class="hint">Accepts data.json format with { "modules": [...] }</div>'
+    + '<input type="file" id="fileInput" accept=".json" onchange="handleFileSelect(event)" />'
+    + '</div></div>'
+    + '<div id="bulkTabPaste" style="display:none">'
+    + '<textarea id="bulkJsonInput" style="min-height:200px; font-family: \'SF Mono\', monospace; font-size: 12px;" placeholder=\'Paste JSON here... e.g. { "modules": [...] }\'></textarea>'
+    + '<div style="margin-top:8px;text-align:right">'
+    + '<button class="btn btn-outline btn-sm" onclick="parseBulkPaste()">Parse JSON</button>'
+    + '</div></div>'
+    + '<div id="bulkPreview"></div>'
+    + '<div id="bulkProgress" style="display:none">'
+    + '<div class="upload-progress">'
+    + '<div class="progress-bar"><div class="fill" id="bulkProgressFill" style="width:0%"></div></div>'
+    + '<div class="progress-text" id="bulkProgressText">Preparing...</div>'
+    + '</div></div>'
+    + '<div class="btn-row">'
+    + '<button class="btn btn-ghost" onclick="closeModal()">Cancel</button>'
+    + '<label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2);margin-top:0;cursor:pointer">'
+    + '<input type="checkbox" id="bulkClearFirst" /> Clear existing data first'
+    + '</label>'
+    + '<button class="btn btn-primary" id="bulkUploadBtn" disabled onclick="executeBulkUpload()">Upload</button>'
+    + '</div>'
+  );
 }
+
+function switchBulkTab(tab, el) {
+  var tabs = document.querySelectorAll('#modal .tab');
+  for (var i = 0; i < tabs.length; i++) tabs[i].classList.remove('active');
+  el.classList.add('active');
+  document.getElementById('bulkTabFile').style.display = tab === 'file' ? '' : 'none';
+  document.getElementById('bulkTabPaste').style.display = tab === 'paste' ? '' : 'none';
+}
+
+function handleFileDrop(e) {
+  var file = e.dataTransfer.files[0];
+  if (file) readBulkFile(file);
+}
+function handleFileSelect(e) {
+  var file = e.target.files[0];
+  if (file) readBulkFile(file);
+}
+function readBulkFile(file) {
+  if (!file.name.endsWith('.json')) { toast("Please select a .json file", "error"); return; }
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    try { parseBulkJSON(e.target.result); }
+    catch (err) { toast("Invalid JSON: " + err.message, "error"); }
+  };
+  reader.readAsText(file);
+}
+
+function parseBulkPaste() {
+  var text = document.getElementById("bulkJsonInput").value.trim();
+  if (!text) { toast("Paste some JSON first", "error"); return; }
+  try { parseBulkJSON(text); } catch (e) { toast("Invalid JSON: " + e.message, "error"); }
+}
+
+function parseBulkJSON(text) {
+  var data = JSON.parse(text);
+  if (!data.modules || !Array.isArray(data.modules)) {
+    toast("JSON must have a 'modules' array", "error"); return;
+  }
+  bulkData = data;
+  var totalChunks = 0, totalQA = 0;
+  data.modules.forEach(function(m) {
+    totalChunks += (m.chunks || []).length;
+    (m.chunks || []).forEach(function(c) { totalQA += (c.qa_pairs || []).length; });
+  });
+
+  var preview = document.getElementById("bulkPreview");
+  var html = '<div class="upload-preview"><div class="preview-header"><span>Preview &mdash; '
+    + data.modules.length + ' modules, ' + totalChunks + ' chunks, ' + totalQA + ' QA pairs</span></div>';
+  var shown = Math.min(data.modules.length, 15);
+  for (var i = 0; i < shown; i++) {
+    var m = data.modules[i];
+    var cc = (m.chunks || []).length;
+    var qq = 0; (m.chunks || []).forEach(function(c) { qq += (c.qa_pairs || []).length; });
+    html += '<div class="preview-item"><span>' + esc(m.title || m.id) + '</span><span style="color:var(--text2)">' + cc + ' chunks, ' + qq + ' QA</span></div>';
+  }
+  if (data.modules.length > 15) html += '<div class="preview-item" style="color:var(--text3)">&hellip; and ' + (data.modules.length - 15) + ' more modules</div>';
+  html += '</div>';
+  preview.innerHTML = html;
+  document.getElementById("bulkUploadBtn").disabled = false;
+  toast("Parsed " + data.modules.length + " modules ready for upload");
+}
+
+async function executeBulkUpload() {
+  if (!bulkData) return;
+  var clearFirst = document.getElementById("bulkClearFirst").checked;
+  var btn = document.getElementById("bulkUploadBtn");
+  btn.disabled = true; btn.textContent = "Uploading...";
+  var progressEl = document.getElementById("bulkProgress");
+  progressEl.style.display = "";
+  var fill = document.getElementById("bulkProgressFill");
+  var text = document.getElementById("bulkProgressText");
+
+  try {
+    if (clearFirst) {
+      text.textContent = "Clearing existing data...";
+      await cMutation("seed:clearAll");
+    }
+
+    var total = bulkData.modules.length;
+    var done = 0;
+    var errors = [];
+
+    for (var i = 0; i < total; i++) {
+      var mod = bulkData.modules[i];
+      try {
+        var chunks = (mod.chunks || []).map(function(c) {
+          return {
+            chunkId: c.chunk_id || "",
+            title: c.title || "",
+            intent: c.intent || undefined,
+            content: c.content || undefined,
+            tags: c.tags || undefined,
+            context: c.context || undefined,
+            priority: c.priority || undefined,
+            weight: c.weight || undefined,
+            responseTemplates: c.response_templates || undefined,
+            steps: c.steps || undefined,
+            failurePatterns: c.failure_patterns || undefined,
+            coachingActions: c.coaching_actions || undefined,
+            metricsImpacted: c.metrics_impacted || undefined,
+            examplesGood: c.examples ? c.examples.good : undefined,
+            examplesBad: c.examples ? c.examples.bad : undefined,
+            conditions: c.conditions || undefined,
+            triggerSignals: c.trigger_signals || undefined,
+            rules: c.rules || undefined,
+            source: c.source || undefined,
+            roleRelevanceBarista: c.role_relevance ? c.role_relevance.barista : undefined,
+            roleRelevanceShiftManager: c.role_relevance ? c.role_relevance.shift_manager : undefined,
+            roleRelevanceStoreManager: c.role_relevance ? c.role_relevance.store_manager : undefined,
+            qaPairs: (c.qa_pairs || []).map(function(q) { return { instruction: q.instruction, output: q.output }; }),
+          };
+        });
+
+        await cMutation("seed:insertModule", {
+          moduleId: mod.id,
+          title: mod.title,
+          description: mod.description || "",
+          chunks: chunks,
+        });
+      } catch (e) {
+        errors.push({ module: mod.title || mod.id, error: e.message });
+      }
+
+      done++;
+      var pct = Math.round((done / total) * 100);
+      fill.style.width = pct + "%";
+      text.textContent = done + " / " + total + " modules uploaded...";
+    }
+
+    if (errors.length > 0) {
+      toast("Upload completed with " + errors.length + " errors", "error");
+      console.error("Bulk upload errors:", errors);
+    } else {
+      toast("Successfully uploaded " + total + " modules", "success");
+    }
+    closeModal();
+    refreshData();
+  } catch (e) {
+    toast("Upload failed: " + e.message, "error");
+    btn.disabled = false; btn.textContent = "Retry Upload";
+  }
+}
+
+// ══════════════════════════════════════════
+//  EXPORT
+// ══════════════════════════════════════════
+async function exportData() {
+  toast("Exporting...");
+  try {
+    var data = await cQuery("knowledge:getAll");
+    var json = JSON.stringify(data, null, 2);
+    var blob = new Blob([json], { type: "application/json" });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    a.href = url;
+    a.download = "third-intelligence-export-" + new Date().toISOString().slice(0, 10) + ".json";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast("Export downloaded", "success");
+  } catch (e) { toast("Export failed: " + e.message, "error"); }
+}
+
+// ══════════════════════════════════════════
+//  KEYBOARD SHORTCUTS
+// ══════════════════════════════════════════
+document.addEventListener("keydown", function(e) {
+  // Ctrl+K or Cmd+K to focus search
+  if ((e.ctrlKey || e.metaKey) && e.key === "k") {
+    e.preventDefault();
+    document.getElementById("search").focus();
+    document.getElementById("search").select();
+  }
+  // Escape to close modal
+  if (e.key === "Escape") {
+    closeModal();
+  }
+});
+
+// ══════════════════════════════════════════
+//  AUTO-CONNECT
+// ══════════════════════════════════════════
+if (CONVEX_URL) connect();
 </script>
 </body>
 </html>
