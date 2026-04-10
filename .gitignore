@@ -7,6 +7,8 @@ backend/uploads/*
 backend/.faiss_cache/
 logs/feedback.json
 .env
+.env.local
 *.egg-info/
 dist/
 build/
+node_modules/

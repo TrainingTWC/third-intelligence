@@ -6,6 +6,7 @@ import re
 import threading
 
 import faiss
+import httpx
 import numpy as np
 from fastembed import TextEmbedding
 
@@ -39,9 +40,10 @@ class RAGEngine:
         self._lock = threading.Lock()
         self._model_name = model_name
         self._embedder = None  # Lazy-loaded on first use to save RAM at startup
-        self.documents, self.doc_sources = self._load_documents(data_path)
+        self._data_json = self._fetch_data(data_path)
+        self.documents, self.doc_sources = self._parse_documents(self._data_json)
         self._seen_keys = {doc.strip().lower() for doc in self.documents}
-        self.index = self._build_or_load_index(data_path)
+        self.index = self._build_or_load_index()
         # Load previously learned knowledge (conversations + uploads)
         self._load_learned()
         logger.info("RAGEngine ready — %d documents indexed", len(self.documents))
@@ -55,15 +57,42 @@ class RAGEngine:
 
     # ── Data loading ──────────────────────────────────────────────
 
-    def _load_documents(self, path: str) -> tuple[list[str], list[str]]:
-        """Load JSON knowledge base and convert to searchable document strings.
+    def _fetch_data(self, file_path: str) -> str:
+        """Fetch knowledge data from Convex (primary) or local JSON file (fallback).
+
+        Returns the raw JSON string for hashing and parsing.
+        """
+        convex_url = os.getenv("CONVEX_URL", "").strip().rstrip("/")
+        if convex_url:
+            try:
+                logger.info("Fetching knowledge base from Convex: %s", convex_url)
+                resp = httpx.post(
+                    f"{convex_url}/api/query",
+                    json={"path": "knowledge:getAll", "args": {}, "format": "json"},
+                    timeout=30,
+                )
+                resp.raise_for_status()
+                payload = resp.json()
+                if payload.get("status") == "success":
+                    data_str = json.dumps(payload["value"], ensure_ascii=False)
+                    logger.info("Loaded knowledge base from Convex (%d bytes)", len(data_str))
+                    return data_str
+                logger.warning("Convex query returned non-success: %s", payload)
+            except Exception as e:
+                logger.warning("Convex fetch failed, falling back to file: %s", e)
+
+        logger.info("Loading knowledge base from %s", file_path)
+        with open(file_path, "r", encoding="utf-8") as f:
+            return f.read()
+
+    def _parse_documents(self, data_json: str) -> tuple[list[str], list[str]]:
+        """Parse JSON knowledge base into searchable document strings.
 
         Returns (documents, sources) where sources[i] is the module title for documents[i].
         Supports both the legacy flat Q&A format and the new modular chunk format.
         Deduplicates identical documents.
         """
-        with open(path, "r", encoding="utf-8") as f:
-            data = json.load(f)
+        data = json.loads(data_json)
 
         docs: list[str] = []
         sources: list[str] = []
@@ -125,23 +154,15 @@ class RAGEngine:
                 if "instruction" in item and "output" in item:
                     _add(f"Q: {item['instruction']}\nA: {item['output']}", "Knowledge Base")
 
-        logger.info("Loaded %d unique documents from %s", len(docs), path)
+        logger.info("Loaded %d unique documents", len(docs))
         return docs, sources
 
     # ── Index construction (with disk cache) ──────────────────────
 
-    def _data_hash(self, data_path: str) -> str:
-        """Hash the data file to detect changes."""
-        h = hashlib.md5()
-        with open(data_path, "rb") as f:
-            for chunk in iter(lambda: f.read(8192), b""):
-                h.update(chunk)
-        return h.hexdigest()
-
-    def _build_or_load_index(self, data_path: str) -> faiss.IndexFlatIP:
+    def _build_or_load_index(self) -> faiss.IndexFlatIP:
         """Load cached FAISS index from disk, or build + cache a new one."""
         os.makedirs(CACHE_DIR, exist_ok=True)
-        data_hash = self._data_hash(data_path)
+        data_hash = hashlib.md5(self._data_json.encode("utf-8")).hexdigest()
         index_path = os.path.join(CACHE_DIR, "index.faiss")
         hash_path = os.path.join(CACHE_DIR, "data.hash")
         embed_path = os.path.join(CACHE_DIR, "embeddings.npy")

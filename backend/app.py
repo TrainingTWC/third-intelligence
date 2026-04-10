@@ -142,6 +142,10 @@ app.mount("/static", StaticFiles(directory="../frontend"), name="static")
 def serve_ui():
     return FileResponse("../frontend/index.html", headers={"Cache-Control": "no-cache, no-store, must-revalidate"})
 
+@app.get("/admin")
+def serve_admin():
+    return FileResponse("../frontend/admin.html", headers={"Cache-Control": "no-cache, no-store, must-revalidate"})
+
 class Message(BaseModel):
     role: str
     text: str
