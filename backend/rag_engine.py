@@ -11,6 +11,23 @@ from fastembed import TextEmbedding
 
 logger = logging.getLogger(__name__)
 
+# Common English stopwords — excluded from keyword scoring to reduce false positives
+STOPWORDS = frozenset({
+    "a", "an", "the", "is", "it", "in", "on", "at", "to", "of", "for", "and",
+    "or", "not", "but", "by", "with", "from", "as", "be", "was", "were", "been",
+    "are", "am", "do", "does", "did", "will", "would", "could", "should", "may",
+    "might", "shall", "can", "has", "have", "had", "if", "so", "no", "yes",
+    "this", "that", "these", "those", "what", "which", "who", "whom", "how",
+    "when", "where", "why", "all", "each", "every", "both", "few", "more",
+    "most", "some", "any", "such", "than", "too", "very", "just", "about",
+    "also", "into", "over", "after", "before", "between", "under", "again",
+    "then", "here", "there", "up", "out", "its", "my", "your", "our", "their",
+    "me", "we", "you", "he", "she", "they", "him", "her", "us", "them",
+    "i", "tell", "know", "get", "got", "like", "want", "need", "please",
+    "give", "make", "made", "let", "going", "go", "come", "take", "say",
+    "said", "thing", "things", "much", "many", "through", "only",
+})
+
 CACHE_DIR = os.path.join(os.path.dirname(__file__), ".faiss_cache")
 LEARNED_PATH = os.path.join(os.path.dirname(__file__), "..", "data", "learned.json")
 
@@ -168,24 +185,35 @@ class RAGEngine:
 
     # ── Keyword retrieval ─────────────────────────────────────────
 
-    def _keyword_search(self, query: str, k: int) -> list[tuple[int, int]]:
+    def _keyword_search(self, query: str, k: int) -> list[tuple[int, float]]:
         """Score documents by how many query keywords appear in them.
 
         Returns (index, score) tuples of the top-k keyword-matched documents,
-        excluding documents with zero matches. Gives bonus for title/Q matches
-        and for dotted-acronym exact matches.
+        excluding documents with zero matches. Filters stopwords, gives bonus
+        for title/Q matches, dotted-acronym exact matches, and multi-word
+        phrase matches.
         """
         q = query.lower()
         # Detect dotted acronyms BEFORE collapsing (e.g. "c.o.f.f.e.e.", "l.e.a.s.t.")
         dotted_acronyms = re.findall(r'(?:[a-z]\.){2,}[a-z]?\.?', q)
         # Collapse dotted acronyms: R.E.S.P.E.C.T. → respect, L.E.A.S.T. → least
-        q = re.sub(r'(?:[a-z]\.){2,}[a-z]?\.?', lambda m: m.group().replace('.', ''), q)
-        # Tokenise into words, drop single-character tokens (too noisy)
-        keywords = {w for w in re.findall(r"\w+", q) if len(w) > 1}
+        q_collapsed = re.sub(r'(?:[a-z]\.){2,}[a-z]?\.?', lambda m: m.group().replace('.', ''), q)
+        # Tokenise into words, drop single-character tokens and stopwords
+        all_words = [w for w in re.findall(r"\w+", q_collapsed) if len(w) > 1]
+        keywords = {w for w in all_words if w not in STOPWORDS}
+        if not keywords:
+            # If only stopwords, fall back to all non-single-char words
+            keywords = {w for w in all_words if len(w) > 1}
         if not keywords:
             return []
 
-        scores: list[tuple[int, int]] = []
+        # Build bigrams for phrase matching (e.g., "customer complaint" matches better)
+        bigrams = []
+        for i in range(len(all_words) - 1):
+            if all_words[i] not in STOPWORDS or all_words[i+1] not in STOPWORDS:
+                bigrams.append(f"{all_words[i]} {all_words[i+1]}")
+
+        scores: list[tuple[int, float]] = []
         for idx, doc in enumerate(self.documents):
             doc_lower = doc.lower()
             hits = sum(1 for kw in keywords if kw in doc_lower)
@@ -194,9 +222,10 @@ class RAGEngine:
                 first_line = doc_lower.split('\n', 1)[0]
                 title_hits = sum(2 for kw in keywords if kw in first_line)
                 # Big bonus: if the original dotted acronym appears in the document
-                # (distinguishes "C.O.F.F.E.E. framework" docs from generic "coffee" mentions)
                 acronym_bonus = sum(5 for acr in dotted_acronyms if acr in doc_lower)
-                scores.append((idx, hits + title_hits + acronym_bonus))
+                # Phrase bonus: consecutive-word matches are stronger signals
+                phrase_bonus = sum(2 for bg in bigrams if bg in doc_lower)
+                scores.append((idx, hits + title_hits + acronym_bonus + phrase_bonus))
 
         # Sort by hit count descending, take top-k
         scores.sort(key=lambda x: x[1], reverse=True)
@@ -204,64 +233,74 @@ class RAGEngine:
 
     # ── Hybrid merge ──────────────────────────────────────────────
 
-    def _merge_results(self, keyword_results: list[tuple[int, int]], semantic_ids: list[int], k: int) -> list[int]:
-        """Merge semantic and keyword results, prioritizing keyword when matches are strong."""
-        seen: set[int] = set()
-        merged: list[int] = []
+    def _merge_results(self, keyword_results: list[tuple[int, float]],
+                        semantic_results: list[tuple[int, float]], k: int) -> list[tuple[int, float]]:
+        """Merge results using Reciprocal Rank Fusion (RRF).
 
-        keyword_ids = [idx for idx, _ in keyword_results]
-        best_kw_score = keyword_results[0][1] if keyword_results else 0
+        Combines keyword and semantic rankings into a single score.
+        Returns (index, rrf_score) tuples sorted by combined score.
+        """
+        rrf_k = 60  # RRF constant — standard value
+        scores: dict[int, float] = {}
 
-        # If keyword search has strong matches (title hit bonus = 2+), lead with keyword
-        keyword_first = best_kw_score >= 3
+        # Keyword ranking contribution
+        for rank, (idx, _) in enumerate(keyword_results):
+            scores[idx] = scores.get(idx, 0.0) + 1.0 / (rrf_k + rank + 1)
 
-        primary = keyword_ids if keyword_first else semantic_ids
-        secondary = semantic_ids if keyword_first else keyword_ids
+        # Semantic ranking contribution
+        for rank, (idx, _) in enumerate(semantic_results):
+            scores[idx] = scores.get(idx, 0.0) + 1.0 / (rrf_k + rank + 1)
 
-        i = j = 0
-        while len(merged) < k and (i < len(primary) or j < len(secondary)):
-            if i < len(primary) and primary[i] not in seen:
-                seen.add(primary[i])
-                merged.append(primary[i])
-            i += 1
-            if len(merged) >= k:
-                break
-            if j < len(secondary) and secondary[j] not in seen:
-                seen.add(secondary[j])
-                merged.append(secondary[j])
-            j += 1
-
-        return merged
+        # Sort by combined RRF score descending
+        ranked = sorted(scores.items(), key=lambda x: x[1], reverse=True)
+        return ranked[:k]
 
     # ── Public API ────────────────────────────────────────────────
 
-    def retrieve(self, query: str, k: int = 5) -> dict:
+    def retrieve(self, query: str, k: int = 8) -> dict:
         """Run hybrid retrieval and return results with sources and confidence.
+
+        Oversamples candidates (2x k) from both keyword and semantic search,
+        merges via Reciprocal Rank Fusion, then filters by minimum relevance.
 
         Returns:
             {"context": str, "sources": list[str], "confidence": str}
         """
-        keyword_results = self._keyword_search(query, k)
-        semantic_results = self._semantic_search(query, k)
+        oversample = k * 2  # fetch more candidates for better RRF merge
+        keyword_results = self._keyword_search(query, oversample)
+        semantic_results = self._semantic_search(query, oversample)
 
-        # Extract just indices for merge, keep scores for confidence
-        semantic_ids = [idx for idx, _ in semantic_results]
-        score_map = {idx: score for idx, score in semantic_results}
+        # Build semantic score map for confidence calculation
+        sem_score_map = {idx: score for idx, score in semantic_results}
 
-        final_ids = self._merge_results(keyword_results, semantic_ids, k)
-        results = [self.documents[i] for i in final_ids]
+        # RRF merge
+        merged = self._merge_results(keyword_results, semantic_results, k)
+        final_ids = [idx for idx, _ in merged]
 
-        # Deduplicate source labels and collect them
+        # Filter out documents with very low semantic relevance (below 0.15)
+        # unless they had strong keyword hits (keeps exact-match results)
+        kw_ids = {idx for idx, _ in keyword_results[:k]}
+        filtered_ids = []
+        for idx in final_ids:
+            sem_score = sem_score_map.get(idx, 0.0)
+            if sem_score >= 0.15 or idx in kw_ids:
+                filtered_ids.append(idx)
+        if not filtered_ids and final_ids:
+            filtered_ids = final_ids[:3]  # fallback: keep top 3 even if low score
+
+        # Build structured context with source labels per document
+        context_parts = []
         seen_sources: set[str] = set()
         source_list: list[str] = []
-        for i in final_ids:
+        for i in filtered_ids:
             src = self.doc_sources[i]
             if src not in seen_sources:
                 seen_sources.add(src)
                 source_list.append(src)
+            context_parts.append(f"[Source: {src}]\n{self.documents[i]}")
 
         # Confidence based on best cosine similarity score
-        best_score = max((score_map.get(i, 0.0) for i in final_ids), default=0.0)
+        best_score = max((sem_score_map.get(i, 0.0) for i in filtered_ids), default=0.0)
         if best_score >= 0.45:
             confidence = "high"
         elif best_score >= 0.25:
@@ -270,13 +309,14 @@ class RAGEngine:
             confidence = "low"
 
         logger.debug("Query: %s", query)
-        logger.debug("Keyword hits: %s | Semantic hits: %s | Final: %s", keyword_results, semantic_ids, final_ids)
-        logger.debug("Best score: %.3f → confidence: %s", best_score, confidence)
-        for i, doc in enumerate(results, 1):
-            logger.debug("  [%d] %s", i, doc[:120])
+        logger.debug("Keyword (%d) | Semantic (%d) | RRF merged (%d) | After filter (%d)",
+                     len(keyword_results), len(semantic_results), len(merged), len(filtered_ids))
+        logger.debug("Best semantic score: %.3f → confidence: %s", best_score, confidence)
+        for i, idx in enumerate(filtered_ids, 1):
+            logger.debug("  [%d] (sem=%.3f) %s", i, sem_score_map.get(idx, 0.0), self.documents[idx][:120])
 
         return {
-            "context": "\n\n".join(results),
+            "context": "\n\n".join(context_parts),
             "sources": source_list,
             "confidence": confidence,
         }

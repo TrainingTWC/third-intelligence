@@ -95,7 +95,11 @@ Acronym disambiguation:
 
 Intelligence rules:
 - Answer using the context provided. Never fabricate facts not supported by the context.
-- If the context contains ANY relevant information, use it to give a helpful answer.
+- IMPORTANT: The retrieved context is your PRIMARY knowledge source. Read it carefully and THOROUGHLY before answering. Every [Source: ...] block may contain the answer.
+- If the context contains ANY relevant information, use it to give a helpful answer. Do NOT say "I don't have information" when the context clearly addresses the topic.
+- Look for BOTH direct answers (Q&A pairs) AND indirect information (content blocks, steps, tags, examples) in the context. The answer might not be a perfect Q&A match but the information may still be there.
+- When the user asks about a specific topic (e.g., "complaint handling", "espresso machine"), scan ALL context blocks — the relevant data might be in a block labeled with a different but related topic.
+- CONVERSATION CONTINUITY: When "Previous conversation" is provided, USE IT to resolve ambiguity. If the user previously asked about a specific topic (e.g., RESPECT framework) and now says "tell me more" or "what about the first step", connect it back to that topic — don't ask them to clarify what they already told you.
 - THINK BEYOND THE LITERAL. Recognize patterns, trends, and structural logic in the context:
   - If you see multiple recipes following the same build pattern (e.g., syrup → espresso → milk → garnish), state that pattern when asked about "how beverages are made" or "what's the general process."
   - If you see consistent rules across items (e.g., all bagels use black tray, all pizzas are cut into 6 slices), generalize those rules when relevant.
@@ -348,15 +352,36 @@ def ask(query: Query, request: Request):
         if f["type"] == "document":
             doc_texts.append(f"[Uploaded file: {f['filename']}]\n{f['text']}")
 
-    # Build a focused RAG query
+    # Build a focused RAG query — use only user messages for context (AI responses are too verbose)
     rag_query = query.question
     if query.history:
-        tail = query.history[-2:]
-        context_parts = [m.text for m in tail]
-        context_parts.append(query.question)
-        rag_query = " ".join(context_parts)
+        prev_user_msgs = [m.text for m in query.history if m.role == "user"][-2:]
+        if prev_user_msgs:
+            rag_query = " ".join(prev_user_msgs) + " " + query.question
 
+    # Primary retrieval with context-enriched query
     rag_result = rag.retrieve(rag_query)
+
+    # If query differs from raw question (follow-up), also retrieve with just the question
+    # and merge any new sources/context the primary query missed
+    if rag_query != query.question:
+        direct_result = rag.retrieve(query.question)
+        # Append any context not already present
+        existing = set(rag_result["context"].splitlines())
+        extra_parts = []
+        for line in direct_result["context"].splitlines():
+            if line and line not in existing:
+                extra_parts.append(line)
+        if extra_parts:
+            rag_result["context"] += "\n\n" + "\n".join(extra_parts)
+        for src in direct_result["sources"]:
+            if src not in rag_result["sources"]:
+                rag_result["sources"].append(src)
+        # Use the higher confidence
+        conf_order = {"high": 3, "medium": 2, "low": 1}
+        if conf_order.get(direct_result["confidence"], 0) > conf_order.get(rag_result["confidence"], 0):
+            rag_result["confidence"] = direct_result["confidence"]
+
     context = rag_result["context"]
     sources = rag_result["sources"]
     confidence = rag_result["confidence"]
@@ -552,12 +577,24 @@ def api_ask(query: APIQuery, x_api_key: str | None = Header(None)):
 
     rag_query = query.question
     if query.history:
-        tail = query.history[-2:]
-        context_parts = [m.text for m in tail]
-        context_parts.append(query.question)
-        rag_query = " ".join(context_parts)
+        prev_user_msgs = [m.text for m in query.history if m.role == "user"][-2:]
+        if prev_user_msgs:
+            rag_query = " ".join(prev_user_msgs) + " " + query.question
 
     rag_result = rag.retrieve(rag_query)
+    if rag_query != query.question:
+        direct_result = rag.retrieve(query.question)
+        existing = set(rag_result["context"].splitlines())
+        extra_parts = [line for line in direct_result["context"].splitlines() if line and line not in existing]
+        if extra_parts:
+            rag_result["context"] += "\n\n" + "\n".join(extra_parts)
+        for src in direct_result["sources"]:
+            if src not in rag_result["sources"]:
+                rag_result["sources"].append(src)
+        conf_order = {"high": 3, "medium": 2, "low": 1}
+        if conf_order.get(direct_result["confidence"], 0) > conf_order.get(rag_result["confidence"], 0):
+            rag_result["confidence"] = direct_result["confidence"]
+
     context = rag_result["context"]
     sources = rag_result["sources"]
     confidence = rag_result["confidence"]
