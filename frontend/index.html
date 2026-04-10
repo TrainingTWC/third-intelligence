@@ -581,6 +581,89 @@
     .send-btn:disabled { background: rgba(139,124,246,0.25); cursor: not-allowed; transform: none; box-shadow: none; }
     .send-btn svg { width: 18px; height: 18px; }
 
+    /* ── Mic button (Tier 1) ── */
+    .mic-btn {
+      width: 40px; height: 40px; border-radius: var(--radius-xs); border: none; background: none;
+      color: var(--text-3); cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+      transition: all 0.2s; position: relative;
+    }
+    .mic-btn:hover { color: var(--accent); background: var(--surface-2); }
+    .mic-btn svg { width: 20px; height: 20px; }
+    .mic-btn.recording { color: #ef4444; }
+    .mic-btn.recording::after {
+      content: ''; position: absolute; inset: -4px; border-radius: var(--radius-xs);
+      border: 2px solid #ef4444; animation: micPulse 1.2s ease-in-out infinite;
+    }
+    @keyframes micPulse {
+      0%, 100% { opacity: 0.6; transform: scale(1); }
+      50% { opacity: 0; transform: scale(1.25); }
+    }
+    .mic-btn.unsupported { display: none; }
+
+    /* ── Voice conversation overlay (Tier 2) ── */
+    .voice-overlay {
+      position: fixed; inset: 0; z-index: 10000;
+      background: var(--bg); display: flex; flex-direction: column; align-items: center; justify-content: center;
+      opacity: 0; pointer-events: none; transition: opacity 0.35s ease;
+    }
+    .voice-overlay.active { opacity: 1; pointer-events: auto; }
+    .voice-close-btn {
+      position: absolute; top: 20px; right: 20px; width: 44px; height: 44px; border-radius: 50%;
+      border: 1px solid var(--border-subtle); background: var(--surface-1); color: var(--text-2);
+      cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s;
+    }
+    .voice-close-btn:hover { background: var(--surface-2); color: var(--text-1); }
+    .voice-close-btn svg { width: 20px; height: 20px; }
+    .voice-orb-wrap { position: relative; width: 160px; height: 160px; margin-bottom: 32px; }
+    .voice-orb {
+      width: 100%; height: 100%; border-radius: 50%;
+      background: radial-gradient(circle at 40% 40%, var(--accent), #6c5ce7);
+      box-shadow: 0 0 60px rgba(139,124,246,0.3);
+      transition: transform 0.4s ease, box-shadow 0.4s ease;
+    }
+    .voice-overlay.state-listening .voice-orb {
+      animation: orbListen 2s ease-in-out infinite;
+      box-shadow: 0 0 80px rgba(139,124,246,0.5);
+    }
+    .voice-overlay.state-thinking .voice-orb {
+      animation: orbThink 0.8s ease-in-out infinite;
+      box-shadow: 0 0 40px rgba(139,124,246,0.2);
+    }
+    .voice-overlay.state-speaking .voice-orb {
+      animation: orbSpeak 0.6s ease-in-out infinite;
+      box-shadow: 0 0 100px rgba(139,124,246,0.6);
+    }
+    @keyframes orbListen {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.08); }
+    }
+    @keyframes orbThink {
+      0%, 100% { transform: scale(0.95); opacity: 0.7; }
+      50% { transform: scale(1); opacity: 1; }
+    }
+    @keyframes orbSpeak {
+      0%, 100% { transform: scale(1); }
+      30% { transform: scale(1.12); }
+      60% { transform: scale(0.97); }
+    }
+    .voice-status {
+      font-size: 16px; font-weight: 500; color: var(--text-2); letter-spacing: 0.5px;
+      text-transform: uppercase; margin-bottom: 12px; min-height: 24px;
+    }
+    .voice-transcript {
+      font-size: 14px; color: var(--text-3); max-width: 400px; text-align: center;
+      min-height: 20px; opacity: 0.8;
+    }
+    .voice-trigger-btn {
+      width: 36px; height: 36px; border-radius: var(--radius-xs); border: 1px solid var(--border-subtle);
+      background: var(--surface-1); color: var(--text-2); cursor: pointer;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+      transition: all 0.2s;
+    }
+    .voice-trigger-btn:hover { background: var(--surface-2); color: var(--accent); border-color: var(--accent); }
+    .voice-trigger-btn svg { width: 17px; height: 17px; }
+    .voice-trigger-btn.unsupported { display: none; }
+
     .footer { text-align: center; font-size: 10px; color: var(--text-3); margin-top: 8px; letter-spacing: 0.8px; text-transform: uppercase; }
 
     /* ── Responsive ── */
@@ -648,6 +731,9 @@
       /* Touch-friendly buttons */
       .send-btn { width: 42px; height: 42px; }
       .attach-btn { width: 42px; height: 42px; }
+      .mic-btn { width: 42px; height: 42px; }
+      .voice-trigger-btn { width: 34px; height: 34px; }
+      .voice-orb-wrap { width: 120px; height: 120px; }
       .sidebar-btn { width: 40px; height: 40px; }
       .sidebar-toggle { top: max(16px, env(safe-area-inset-top, 16px)); left: max(14px, env(safe-area-inset-left, 14px)); }
     }
@@ -759,6 +845,11 @@
           <option value="ta">TA - Tamil</option>
           <option value="te">TE - Telugu</option>
         </select>
+        <button class="voice-trigger-btn" id="voiceTriggerBtn" onclick="openVoiceOverlay()" title="Voice conversation">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/>
+          </svg>
+        </button>
       </div>
 
       <div class="chat" id="chat">
@@ -785,6 +876,11 @@
             </button>
             <input type="file" id="fileInput" multiple hidden accept=".png,.jpg,.jpeg,.gif,.webp,.bmp,.pdf,.docx,.txt,.csv,.md,.log,.json" onchange="handleFileSelect(event)">
             <textarea id="input" rows="1" placeholder="Ask something..." onkeydown="handleKey(event)" oninput="autoGrow(this)"></textarea>
+            <button class="mic-btn" id="micBtn" onclick="toggleMic()" title="Voice input">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="1" width="6" height="11" rx="3"/><path d="M19 10v2a7 7 0 01-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/>
+              </svg>
+            </button>
             <button class="send-btn" id="sendBtn" onclick="send()">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M5 12h14M12 5l7 7-7 7"/>
@@ -795,6 +891,16 @@
         <div class="footer">Internal Use Only</div>
       </div>
     </div>
+  </div>
+
+  <!-- Voice Conversation Overlay (Tier 2) -->
+  <div class="voice-overlay" id="voiceOverlay">
+    <button class="voice-close-btn" onclick="closeVoiceOverlay()" title="Close">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+    </button>
+    <div class="voice-orb-wrap"><div class="voice-orb"></div></div>
+    <div class="voice-status" id="voiceStatus">Tap to start</div>
+    <div class="voice-transcript" id="voiceTranscript"></div>
   </div>
 
   <script>
@@ -1476,6 +1582,214 @@
       }
       return fileIds;
     }
+
+    // ═══════════════════════════════════════
+    //  VOICE — TIER 1: Mic button (voice-to-text)
+    // ═══════════════════════════════════════
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const micBtn = document.getElementById('micBtn');
+    const voiceTriggerBtn = document.getElementById('voiceTriggerBtn');
+    let micRecognition = null;
+    let micActive = false;
+
+    const LANG_MAP = { en: 'en-US', hi: 'hi-IN', kn: 'kn-IN', ta: 'ta-IN', te: 'te-IN' };
+
+    if (!SpeechRecognition) {
+      micBtn.classList.add('unsupported');
+      voiceTriggerBtn.classList.add('unsupported');
+    }
+
+    function toggleMic() {
+      if (!SpeechRecognition) return;
+      if (micActive) { stopMic(); return; }
+      micActive = true;
+      micBtn.classList.add('recording');
+      micRecognition = new SpeechRecognition();
+      micRecognition.lang = LANG_MAP[currentLang] || 'en-US';
+      micRecognition.interimResults = true;
+      micRecognition.continuous = true;
+      let finalTranscript = inputEl.value;
+      micRecognition.onresult = (e) => {
+        let interim = '';
+        for (let i = e.resultIndex; i < e.results.length; i++) {
+          if (e.results[i].isFinal) {
+            finalTranscript += (finalTranscript ? ' ' : '') + e.results[i][0].transcript;
+          } else {
+            interim += e.results[i][0].transcript;
+          }
+        }
+        inputEl.value = finalTranscript + (interim ? ' ' + interim : '');
+        autoGrow(inputEl);
+      };
+      micRecognition.onerror = () => stopMic();
+      micRecognition.onend = () => { if (micActive) stopMic(); };
+      micRecognition.start();
+    }
+
+    function stopMic() {
+      micActive = false;
+      micBtn.classList.remove('recording');
+      if (micRecognition) { try { micRecognition.stop(); } catch {} micRecognition = null; }
+    }
+
+    // ═══════════════════════════════════════
+    //  VOICE — TIER 2: Full conversation overlay
+    // ═══════════════════════════════════════
+    const voiceOverlay = document.getElementById('voiceOverlay');
+    const voiceStatus = document.getElementById('voiceStatus');
+    const voiceTranscript = document.getElementById('voiceTranscript');
+    let voiceConvoActive = false;
+    let voiceRecognition = null;
+    let voiceState = 'idle'; // idle | listening | thinking | speaking
+    let voiceHistory = [];
+
+    function setVoiceState(state) {
+      voiceState = state;
+      voiceOverlay.className = 'voice-overlay active state-' + state;
+      if (state === 'listening') voiceStatus.textContent = 'Listening...';
+      else if (state === 'thinking') voiceStatus.textContent = 'Thinking...';
+      else if (state === 'speaking') voiceStatus.textContent = 'Speaking...';
+      else voiceStatus.textContent = 'Tap to start';
+    }
+
+    function openVoiceOverlay() {
+      if (!SpeechRecognition) return;
+      voiceConvoActive = true;
+      voiceHistory = [];
+      // Copy recent chat history for context
+      const chat = getActiveChat();
+      if (chat) voiceHistory = chat.messages.slice(-10);
+      voiceTranscript.textContent = '';
+      voiceOverlay.classList.add('active');
+      startVoiceListening();
+    }
+
+    function closeVoiceOverlay() {
+      voiceConvoActive = false;
+      voiceOverlay.classList.remove('active');
+      voiceOverlay.className = 'voice-overlay';
+      voiceStatus.textContent = 'Tap to start';
+      voiceTranscript.textContent = '';
+      if (voiceRecognition) { try { voiceRecognition.abort(); } catch {} voiceRecognition = null; }
+      window.speechSynthesis.cancel();
+    }
+
+    function startVoiceListening() {
+      if (!voiceConvoActive) return;
+      setVoiceState('listening');
+      voiceTranscript.textContent = '';
+      voiceRecognition = new SpeechRecognition();
+      voiceRecognition.lang = LANG_MAP[currentLang] || 'en-US';
+      voiceRecognition.interimResults = true;
+      voiceRecognition.continuous = false;
+      let finalText = '';
+      voiceRecognition.onresult = (e) => {
+        let interim = '';
+        for (let i = e.resultIndex; i < e.results.length; i++) {
+          if (e.results[i].isFinal) {
+            finalText += (finalText ? ' ' : '') + e.results[i][0].transcript;
+          } else {
+            interim += e.results[i][0].transcript;
+          }
+        }
+        voiceTranscript.textContent = finalText + (interim ? ' ' + interim : '');
+      };
+      voiceRecognition.onend = () => {
+        if (!voiceConvoActive) return;
+        const q = finalText.trim();
+        if (!q) { startVoiceListening(); return; }
+        // Check for exit commands
+        const lower = q.toLowerCase();
+        if (lower === 'stop' || lower === 'goodbye' || lower === 'exit' || lower === 'close') {
+          closeVoiceOverlay(); return;
+        }
+        voiceAsk(q);
+      };
+      voiceRecognition.onerror = (e) => {
+        if (e.error === 'no-speech' && voiceConvoActive) { startVoiceListening(); return; }
+        if (voiceConvoActive) startVoiceListening();
+      };
+      voiceRecognition.start();
+    }
+
+    async function voiceAsk(question) {
+      setVoiceState('thinking');
+      voiceTranscript.textContent = question;
+
+      // Also add to chat history for persistence
+      addMsg('user', question);
+      addMessageToStore('user', question);
+      voiceHistory.push({ role: 'user', text: question });
+
+      try {
+        const res = await fetch('/ask', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ question, history: voiceHistory.slice(-10), mode: currentMode, language: currentLang })
+        });
+
+        let fullText = '';
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          const chunk = decoder.decode(value, { stream: true });
+          const lines = chunk.split('\n');
+          for (const line of lines) {
+            if (!line.startsWith('data: ')) continue;
+            const token = line.slice(6);
+            if (token === '[DONE]' || token.startsWith('[META]')) continue;
+            fullText += token;
+          }
+        }
+
+        if (!fullText) fullText = "I don't have that information right now.";
+
+        addMsg('ai', fullText);
+        addMessageToStore('ai', fullText);
+        voiceHistory.push({ role: 'ai', text: fullText });
+
+        if (!voiceConvoActive) return;
+        // Speak the response
+        setVoiceState('speaking');
+        voiceTranscript.textContent = fullText.length > 200 ? fullText.slice(0, 200) + '...' : fullText;
+        await voiceSpeak(fullText);
+
+        if (voiceConvoActive) startVoiceListening();
+      } catch {
+        if (voiceConvoActive) {
+          voiceTranscript.textContent = 'Something went wrong. Listening again...';
+          setTimeout(() => { if (voiceConvoActive) startVoiceListening(); }, 1500);
+        }
+      }
+    }
+
+    function voiceSpeak(text) {
+      return new Promise((resolve) => {
+        // Strip markdown for TTS
+        const clean = text.replace(/\*\*(.+?)\*\*/g, '$1')
+          .replace(/`([^`]+)`/g, '$1')
+          .replace(/#{1,4}\s+/g, '')
+          .replace(/[\*\-]\s+/g, '')
+          .replace(/\n+/g, '. ');
+        const utter = new SpeechSynthesisUtterance(clean);
+        utter.lang = LANG_MAP[currentLang] || 'en-US';
+        utter.rate = 1.05;
+        utter.onend = resolve;
+        utter.onerror = resolve;
+        window.speechSynthesis.speak(utter);
+      });
+    }
+
+    // Allow clicking the orb to interrupt/restart listening
+    document.querySelector('.voice-orb-wrap').addEventListener('click', () => {
+      if (!voiceConvoActive) return;
+      if (voiceState === 'speaking') {
+        window.speechSynthesis.cancel();
+        startVoiceListening();
+      }
+    });
 
     inputEl.focus();
   </script>
