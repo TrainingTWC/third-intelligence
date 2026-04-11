@@ -14,12 +14,6 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-# Only runtime deps: curl + zstd for Ollama install
-RUN apt-get update && apt-get install -y --no-install-recommends curl zstd && \
-    curl -fsSL https://ollama.com/install.sh | sh && \
-    apt-get purge -y curl zstd && apt-get autoremove -y && \
-    rm -rf /var/lib/apt/lists/* /tmp/* /root/.cache
-
 # Copy pre-built Python packages from builder
 COPY --from=builder /install /usr/local
 

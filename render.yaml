@@ -4,17 +4,13 @@ services:
     runtime: docker
     plan: starter
     envVars:
-      - key: OLLAMA_MODEL
-        value: gemma4:31b-cloud
+      - key: GEMINI_API_KEY
+        sync: false  # Set manually in Render dashboard
+      - key: GEMINI_MODEL
+        value: gemma-3-27b-it
       - key: API_KEY
         generateValue: true  # Auto-generates a random API key for external apps
       - key: PORT
         value: 8000
-      - key: OLLAMA_NUM_PARALLEL
-        value: "1"
-      - key: OLLAMA_MAX_LOADED_MODELS
-        value: "0"
-      - key: OLLAMA_KEEP_ALIVE
-        value: "0"
       - key: GOOGLE_SHEETS_WEBHOOK
         value: "https://script.google.com/macros/s/AKfycbxnO_CE1VyZRqgevf9w2ZbtNzefF5fOl7BgtaVh66_pv_TKLSCzWOAPvjO_qGpdig1R/exec"

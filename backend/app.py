@@ -24,8 +24,8 @@ FEEDBACK_PATH = Path(__file__).parent.parent / "logs" / "feedback.json"
 KNOWLEDGE_GAPS_PATH = Path(__file__).parent.parent / "logs" / "knowledge_gaps.json"
 
 # ── Config (env vars) ──
-OLLAMA_BASE = os.getenv("OLLAMA_BASE", "http://localhost:11434")
-OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "gemma4:31b-cloud")
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
+GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemma-3-27b-it")
 API_KEY = os.getenv("API_KEY", "")  # For external app auth on /api/ask
 
 app = FastAPI()
@@ -114,26 +114,17 @@ Intelligence rules:
 MAX_HISTORY_TURNS = 5
 
 # ── One-time initialization ──
-from langchain_ollama import OllamaLLM
-llm = OllamaLLM(model=OLLAMA_MODEL, base_url=OLLAMA_BASE)
-logger.info("Using Ollama (%s) at %s", OLLAMA_MODEL, OLLAMA_BASE)
+from google import genai
+genai_client = genai.Client(api_key=GEMINI_API_KEY)
+logger.info("Using Google AI Studio model: %s", GEMINI_MODEL)
 
 rag = RAGEngine()
 
 # ── Health check endpoint ──
 @app.get("/health")
 def health():
-    """Check Ollama connectivity and model availability."""
-    import httpx as _hx
-    result = {"ollama_base": OLLAMA_BASE, "model": OLLAMA_MODEL, "ollama_reachable": False, "models": [], "error": None}
-    try:
-        r = _hx.get(f"{OLLAMA_BASE}/api/tags", timeout=5)
-        result["ollama_reachable"] = True
-        tags = r.json()
-        result["models"] = [m.get("name", "?") for m in tags.get("models", [])]
-    except Exception as e:
-        result["error"] = str(e)
-    return result
+    """Check Google AI Studio configuration."""
+    return {"model": GEMINI_MODEL, "api_key_set": bool(GEMINI_API_KEY), "status": "ok"}
 
 # ── Serve frontend ──
 app.mount("/static", StaticFiles(directory="../frontend"), name="static")
@@ -428,34 +419,25 @@ Previous conversation:
     # Log knowledge gap for low-confidence queries
     _log_knowledge_gap(query.question, confidence)
 
-    # ── If images are attached, use Ollama chat API with vision ──
+    # ── If images are attached, use vision ──
     if has_images:
         image_b64_list = [f["base64"] for f in processed_files if f["type"] == "image"]
-
-        messages = [
-            {"role": "system", "content": SYSTEM_PROMPT},
-            {"role": "user", "content": prompt_text, "images": image_b64_list},
-        ]
+        import base64 as b64_mod
+        from google.genai import types as genai_types
+        parts = [prompt_text]
+        for b64 in image_b64_list:
+            parts.append(genai_types.Part.from_bytes(data=b64_mod.b64decode(b64), mime_type="image/jpeg"))
 
         def vision_stream():
             full_answer = []
             try:
-                with httpx.stream(
-                    "POST",
-                    f"{OLLAMA_BASE}/api/chat",
-                    json={"model": OLLAMA_MODEL, "messages": messages, "stream": True},
-                    timeout=120.0,
-                ) as resp:
-                    for line in resp.iter_lines():
-                        if not line:
-                            continue
-                        data = json.loads(line)
-                        token = data.get("message", {}).get("content", "")
-                        if token:
-                            full_answer.append(token)
-                            yield f"data: {token}\n\n"
-                        if data.get("done"):
-                            break
+                response = genai_client.models.generate_content_stream(
+                    model=GEMINI_MODEL, contents=parts
+                )
+                for chunk in response:
+                    if chunk.text:
+                        full_answer.append(chunk.text)
+                        yield f"data: {chunk.text}\n\n"
                 meta = json.dumps({"sources": sources, "confidence": confidence})
                 yield f"data: [META]{meta}\n\n"
                 yield "data: [DONE]\n\n"
@@ -472,9 +454,13 @@ Previous conversation:
     def token_stream():
         full_answer = []
         try:
-            for chunk in llm.stream(prompt_text):
-                full_answer.append(chunk)
-                yield f"data: {chunk}\n\n"
+            response = genai_client.models.generate_content_stream(
+                model=GEMINI_MODEL, contents=prompt_text
+            )
+            for chunk in response:
+                if chunk.text:
+                    full_answer.append(chunk.text)
+                    yield f"data: {chunk.text}\n\n"
             meta = json.dumps({"sources": sources, "confidence": confidence})
             yield f"data: [META]{meta}\n\n"
             yield "data: [DONE]\n\n"
@@ -631,7 +617,10 @@ Previous conversation:
 --- END USER QUESTION ---
 """
     try:
-        answer = llm.invoke(prompt_text)
+        response = genai_client.models.generate_content(
+            model=GEMINI_MODEL, contents=prompt_text
+        )
+        answer = response.text
     except Exception as e:
         logger.error("API ask failed: %s", e)
         raise HTTPException(status_code=500, detail="LLM generation failed")

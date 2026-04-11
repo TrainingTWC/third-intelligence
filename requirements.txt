@@ -1,6 +1,6 @@
 fastapi
 uvicorn
-langchain-ollama
+google-genai
 fastembed
 faiss-cpu
 numpy

@@ -2,10 +2,9 @@
 
 ## Architecture
 
-- **Hosting**: Render.com (free tier — 512 MB RAM, auto-sleep after 15 min idle)
-- **LLM**: gemma4:31b-cloud via Ollama (inference runs on Ollama's cloud servers — no local GPU/RAM needed)
+- **Hosting**: Render.com (starter plan — 512 MB RAM, auto-sleep after 15 min idle)
+- **LLM**: Gemma via Google AI Studio (free tier, no GPU needed)
 - **RAG**: Runs on Render (SentenceTransformer + FAISS, ~200 MB RAM)
-- **Ollama**: Installed as a thin client in the Docker container — just routes requests to Ollama's cloud
 
 ---
 
@@ -33,13 +32,14 @@ git push -u origin main
 5. Add **Environment Variables**:
    | Key | Value |
    |---|---|
-   | `OLLAMA_MODEL` | `gemma4:31b-cloud` |
+   | `GEMINI_API_KEY` | *(your free Google AI Studio API key)* |
+   | `GEMINI_MODEL` | `gemma-3-27b-it` |
    | `API_KEY` | *(any random string — this is for external app auth)* |
 6. Click **Deploy**
 
 Your app will be live at: `https://third-intelligence.onrender.com`
 
-> **Note**: Free tier sleeps after 15 min of inactivity. First request after sleep takes ~30-60s to cold-start (Ollama daemon + model registration).
+> **Note**: Free tier sleeps after 15 min of inactivity. First request after sleep takes ~15-30s to cold-start.
 
 ---
 
@@ -115,10 +115,10 @@ Nothing changed for local dev. Just run as before:
 
 ```bash
 cd backend
-python -m uvicorn app:app --host 127.0.0.1 --port 8000
+GEMINI_API_KEY=your_key python -m uvicorn app:app --host 127.0.0.1 --port 8000
 ```
 
-Ollama must be running locally with `gemma4:31b-cloud` pulled.
+Get a free API key from https://aistudio.google.com/apikey
 
 ---
 
