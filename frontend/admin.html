@@ -1034,9 +1034,7 @@ function showBulkUpload() {
     + '</div></div>'
     + '<div class="btn-row">'
     + '<button class="btn btn-ghost" onclick="closeModal()">Cancel</button>'
-    + '<label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2);margin-top:0;cursor:pointer">'
-    + '<input type="checkbox" id="bulkClearFirst" /> Clear existing data first'
-    + '</label>'
+    + '<button class="btn btn-outline btn-sm" onclick="downloadSampleFile()">&darr; Download Sample File</button>'
     + '<button class="btn btn-primary" id="bulkUploadBtn" disabled onclick="executeBulkUpload()">Upload</button>'
     + '</div>'
   );
@@ -1105,7 +1103,6 @@ function parseBulkJSON(text) {
 
 async function executeBulkUpload() {
   if (!bulkData) return;
-  var clearFirst = document.getElementById("bulkClearFirst").checked;
   var btn = document.getElementById("bulkUploadBtn");
   btn.disabled = true; btn.textContent = "Uploading...";
   var progressEl = document.getElementById("bulkProgress");
@@ -1114,10 +1111,6 @@ async function executeBulkUpload() {
   var text = document.getElementById("bulkProgressText");
 
   try {
-    if (clearFirst) {
-      text.textContent = "Clearing existing data...";
-      await cMutation("seed:clearAll");
-    }
 
     var total = bulkData.modules.length;
     var done = 0;
@@ -1182,6 +1175,51 @@ async function executeBulkUpload() {
     toast("Upload failed: " + e.message, "error");
     btn.disabled = false; btn.textContent = "Retry Upload";
   }
+}
+
+// ══════════════════════════════════════════
+//  DOWNLOAD SAMPLE FILE
+// ══════════════════════════════════════════
+function downloadSampleFile() {
+  var sample = {
+    modules: [
+      {
+        id: "sample_module",
+        title: "Sample Module",
+        description: "A sample module to demonstrate the expected data format",
+        chunks: [
+          {
+            chunk_id: "sample_chunk_1",
+            title: "Sample Chunk",
+            intent: "example",
+            content: "This is the main knowledge content for this chunk.",
+            tags: ["sample", "demo"],
+            context: ["all_roles"],
+            priority: 1,
+            weight: 1.0,
+            response_templates: ["Here is an example response."],
+            steps: ["Step 1: Do this", "Step 2: Do that"],
+            source: "training_manual",
+            role_relevance: { barista: "high", shift_manager: "medium", store_manager: "low" },
+            qa_pairs: [
+              {
+                instruction: "What is this sample about?",
+                output: "This is a sample QA pair demonstrating the expected format for bulk upload."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  };
+  var json = JSON.stringify(sample, null, 2);
+  var blob = new Blob([json], { type: "application/json" });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement("a");
+  a.href = url; a.download = "sample-data.json";
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a); URL.revokeObjectURL(url);
+  toast("Sample file downloaded", "success");
 }
 
 // ══════════════════════════════════════════
