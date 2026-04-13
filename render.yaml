@@ -7,7 +7,7 @@ services:
       - key: GEMINI_API_KEY
         sync: false  # Set manually in Render dashboard
       - key: GEMINI_MODEL
-        value: gemma-3-27b-it
+        value: gemma-4-31b-it
       - key: API_KEY
         generateValue: true  # Auto-generates a random API key for external apps
       - key: PORT

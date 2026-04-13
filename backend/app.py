@@ -25,7 +25,7 @@ KNOWLEDGE_GAPS_PATH = Path(__file__).parent.parent / "logs" / "knowledge_gaps.js
 
 # ── Config (env vars) ──
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
-GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemma-3-27b-it")
+GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemma-4-31b-it")
 API_KEY = os.getenv("API_KEY", "")  # For external app auth on /api/ask
 
 app = FastAPI()
