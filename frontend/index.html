@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en" data-theme="dark" data-mode="normal">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1" />
@@ -66,6 +66,46 @@
       --radius-lg: 28px;
       --sidebar-w: 260px;
       --sidebar-collapsed: 62px;
+    }
+
+    /* ── Mode accent overrides (Walkthrough = Teal) ── */
+    [data-mode="walkthrough"][data-theme="dark"] {
+      --accent: #4ecdc4;
+      --accent-dim: rgba(78,205,196,0.1);
+      --accent-border: rgba(78,205,196,0.15);
+      --border-focus: rgba(78,205,196,0.35);
+      --orb-1: rgba(78,205,196,0.07);
+      --orb-2: rgba(56,178,172,0.04);
+      --orb-3: rgba(100,220,210,0.03);
+    }
+    [data-mode="walkthrough"][data-theme="light"] {
+      --accent: #2db5ac;
+      --accent-dim: rgba(45,181,172,0.1);
+      --accent-border: rgba(45,181,172,0.2);
+      --border-focus: rgba(45,181,172,0.4);
+      --orb-1: rgba(78,205,196,0.06);
+      --orb-2: rgba(56,178,172,0.05);
+      --orb-3: rgba(100,220,210,0.04);
+    }
+
+    /* ── Mode accent overrides (Quiz = Amber) ── */
+    [data-mode="quiz"][data-theme="dark"] {
+      --accent: #f59e0b;
+      --accent-dim: rgba(245,158,11,0.1);
+      --accent-border: rgba(245,158,11,0.15);
+      --border-focus: rgba(245,158,11,0.35);
+      --orb-1: rgba(245,158,11,0.07);
+      --orb-2: rgba(251,191,36,0.04);
+      --orb-3: rgba(245,130,30,0.03);
+    }
+    [data-mode="quiz"][data-theme="light"] {
+      --accent: #d97706;
+      --accent-dim: rgba(217,119,6,0.1);
+      --accent-border: rgba(217,119,6,0.2);
+      --border-focus: rgba(217,119,6,0.4);
+      --orb-1: rgba(245,158,11,0.06);
+      --orb-2: rgba(251,191,36,0.05);
+      --orb-3: rgba(245,130,30,0.04);
     }
 
     html, body {
@@ -1002,14 +1042,53 @@
     let currentMode = 'normal';
     let currentLang = 'en';
 
+    const MODE_WELCOME = {
+      normal: {
+        title: 'Third Intelligence',
+        subtitle: 'Your internal assistant for ops, training, and everything store-related.',
+        suggestions: [
+          'What is the WING\'s program?',
+          'How do I handle an angry customer?',
+          'What\'s the opening checklist?',
+          'Explain bench planning'
+        ]
+      },
+      walkthrough: {
+        title: 'Walk Me Through It',
+        subtitle: 'Step-by-step guidance for any process or SOP.',
+        suggestions: [
+          'Walk me through the opening checklist',
+          'How do I close the cash register?',
+          'Steps to pull an espresso shot',
+          'How to handle a customer complaint?'
+        ]
+      },
+      quiz: {
+        title: 'Quiz Me',
+        subtitle: 'Test your knowledge on any topic. Let\'s see what you\'ve got.',
+        suggestions: [
+          'Quiz me on coffee basics',
+          'Test me on customer experience',
+          'Quiz me on food safety',
+          'Test my knowledge of WING\'s'
+        ]
+      }
+    };
+
     function setMode(mode, btn) {
       currentMode = mode;
+      document.documentElement.setAttribute('data-mode', mode);
       document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
+      if (btn) btn.classList.add('active');
+      else document.querySelector(`.mode-btn[data-mode="${mode}"]`)?.classList.add('active');
       // Update placeholder based on mode
       if (mode === 'quiz') inputEl.placeholder = 'Name a topic to get quizzed on...';
       else if (mode === 'walkthrough') inputEl.placeholder = 'What process should I walk you through?';
       else inputEl.placeholder = 'Ask something...';
+      // Switch to this mode's chat store
+      store = loadModeStore(mode);
+      renderHistory();
+      renderChatMessages();
     }
 
     function setLanguage(lang) {
@@ -1017,15 +1096,19 @@
     }
 
     // ═══════════════════════════════════════
-    //  CHAT HISTORY (localStorage)
+    //  CHAT HISTORY (localStorage, per-mode)
     // ═══════════════════════════════════════
-    function loadStore() {
-      try { const r = localStorage.getItem('ti-store'); if (r) return JSON.parse(r); } catch {}
+    function loadModeStore(mode) {
+      try { const r = localStorage.getItem('ti-store-' + mode); if (r) return JSON.parse(r); } catch {}
+      // Migrate: if old unified store exists and mode is normal, adopt it
+      if (mode === 'normal') {
+        try { const old = localStorage.getItem('ti-store'); if (old) { localStorage.removeItem('ti-store'); return JSON.parse(old); } } catch {}
+      }
       return { chats: {}, activeId: null };
     }
-    function saveStore(s) { localStorage.setItem('ti-store', JSON.stringify(s)); }
+    function saveStore(s) { localStorage.setItem('ti-store-' + currentMode, JSON.stringify(s)); }
 
-    let store = loadStore();
+    let store = loadModeStore(currentMode);
 
     function genId() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
     function getActiveChat() { return (store.activeId && store.chats[store.activeId]) ? store.chats[store.activeId] : null; }
@@ -1201,16 +1284,14 @@
 
       const c = getActiveChat();
       if (!c || c.messages.length === 0) {
+        const mw = MODE_WELCOME[currentMode] || MODE_WELCOME.normal;
         const w = document.createElement('div');
         w.className = 'welcome'; w.id = 'welcome';
         w.innerHTML = `
-          <h1>Third Intelligence</h1>
-          <p>Your internal assistant for ops, training, and everything store-related.</p>
+          <h1>${escapeHtml(mw.title)}</h1>
+          <p>${escapeHtml(mw.subtitle)}</p>
           <div class="suggestions">
-            <div class="suggestion" onclick="useSuggestion(this)">What is the WING's program?</div>
-            <div class="suggestion" onclick="useSuggestion(this)">How do I handle an angry customer?</div>
-            <div class="suggestion" onclick="useSuggestion(this)">What's the opening checklist?</div>
-            <div class="suggestion" onclick="useSuggestion(this)">Explain bench planning</div>
+            ${mw.suggestions.map(s => `<div class="suggestion" onclick="useSuggestion(this)">${escapeHtml(s)}</div>`).join('\n            ')}
           </div>
         `;
         chatEl.appendChild(w);
