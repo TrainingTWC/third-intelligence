@@ -10,7 +10,7 @@ DATA_PATH = pathlib.Path(__file__).resolve().parent.parent / "data" / "data.json
 glossary_module = {
     "id": "glossary_abbreviations",
     "title": "Glossary — Abbreviations & Full Forms",
-    "description": "A comprehensive reference of all abbreviations, acronyms, and their full forms used across TWC/TR operations, training, and customer experience.",
+    "description": "A comprehensive reference of all abbreviations, acronyms, and their full forms used across Third Wave Coffee / Third Rush operations, training, and customer experience.",
     "chunks": [
         {
             "title": "Company & Brand Abbreviations",
@@ -24,11 +24,11 @@ glossary_module = {
                 "POS — Point of Sale (the billing counter/system used to take and process customer orders). "
                 "MOD — Manager on Duty (the manager responsible for the shift). "
                 "LMS — Learning Management System (the online platform used for training modules and certifications). "
-                "UPI — Unified Payments Interface (a digital payment method accepted at TWC/TR)."
+                "UPI — Unified Payments Interface (a digital payment method accepted at Third Wave Coffee / Third Rush)."
             ),
             "tags": ["glossary", "abbreviations", "full_form", "twc", "tr", "cx", "cpi", "sop", "pos", "mod", "lms", "upi"],
             "qa_pairs": [
-                {"instruction": "What is the full form of TWC?", "output": "TWC stands for Third Wave Coffee."},
+                {"instruction": "What is the full form of TWC?", "output": "Third Wave Coffee stands for Third Wave Coffee."},
                 {"instruction": "What is the full form of TR?", "output": "TR stands for Third Rush."},
                 {"instruction": "What is the full form of CX?", "output": "CX stands for Customer Experience."},
                 {"instruction": "What is the full form of CPI?", "output": "CPI stands for Customer Pulse Index. It measures customer satisfaction — out of every 1,000 customers served, it tracks how many were unhappy or had complaints. A smaller CPI number means better service."},
@@ -36,8 +36,8 @@ glossary_module = {
                 {"instruction": "What is the full form of POS?", "output": "POS stands for Point of Sale — the billing counter/system used to take and process customer orders."},
                 {"instruction": "What is the full form of MOD?", "output": "MOD stands for Manager on Duty — the manager responsible for the shift."},
                 {"instruction": "What is the full form of LMS?", "output": "LMS stands for Learning Management System — the online platform used for training modules and certifications."},
-                {"instruction": "What is the full form of UPI?", "output": "UPI stands for Unified Payments Interface — a digital payment method accepted at TWC/TR."},
-                {"instruction": "What does TWC stand for?", "output": "TWC stands for Third Wave Coffee."},
+                {"instruction": "What is the full form of UPI?", "output": "UPI stands for Unified Payments Interface — a digital payment method accepted at Third Wave Coffee / Third Rush."},
+                {"instruction": "What does Third Wave Coffee stand for?", "output": "Third Wave Coffee stands for Third Wave Coffee."},
                 {"instruction": "What does CPI stand for?", "output": "CPI stands for Customer Pulse Index."},
                 {"instruction": "What does MOD stand for?", "output": "MOD stands for Manager on Duty."}
             ]
@@ -70,12 +70,12 @@ glossary_module = {
         },
         {
             "title": "Framework & Program Abbreviations",
-            "intent": "Provide full forms of all framework and program acronyms used at TWC.",
+            "intent": "Provide full forms of all framework and program acronyms used at Third Wave Coffee.",
             "content": (
                 "WING's — W: Winning, I: Integrated Development, N: Nurturing Talent, G: Getting Ready for Success. A structured internal development program for building a strong talent pipeline. "
-                "RESPECT — R: Responsibility, E: Empathy, S: Service Excellence, P: Performance with Purpose, E: Ethics & Integrity, C: Collaboration, T: Trust. The core values framework at TWC. "
+                "RESPECT — R: Responsibility, E: Empathy, S: Service Excellence, P: Performance with Purpose, E: Ethics & Integrity, C: Collaboration, T: Trust. The core values framework at Third Wave Coffee. "
                 "BLEND — B: Brand Touchpoints, L: Learning & Leadership, E: Engage & Elevate, N: Notice & Nurture, D: Driven by R.E.S.P.E.C.T. The CX in-store execution framework. "
-                "C.O.F.F.E.E. — C: Cheerful Welcome, O: Order Taking Assistance, F: Friendly & Accurate Service, F: Feedback With Solutions, E: Enjoyable Experience, E: Enthusiastic Exit. The six steps of customer experience at TWC. "
+                "C.O.F.F.E.E. — C: Cheerful Welcome, O: Order Taking Assistance, F: Friendly & Accurate Service, F: Feedback With Solutions, E: Enjoyable Experience, E: Enthusiastic Exit. The six steps of customer experience at Third Wave Coffee. "
                 "IDP — Internal Development Process (the step-by-step process within WING's for identifying and developing employees for promotion). "
                 "RNR — Recognize & Reward (the program for recognizing team members who demonstrate RESPECT values). "
                 "SHLP — Shift Leadership Program (a workshop required for Shift Managers progressing to ASM). "
@@ -84,9 +84,9 @@ glossary_module = {
             "tags": ["glossary", "abbreviations", "full_form", "wings", "respect", "blend", "coffee", "idp", "rnr", "shlp", "hd", "frameworks"],
             "qa_pairs": [
                 {"instruction": "What is the full form of WING's?", "output": "WING's stands for: W — Winning, I — Integrated Development, N — Nurturing Talent, G — Getting Ready for Success. It is a structured internal development program for building a strong talent pipeline."},
-                {"instruction": "What is the full form of RESPECT?", "output": "RESPECT stands for: R — Responsibility, E — Empathy, S — Service Excellence, P — Performance with Purpose, E — Ethics & Integrity, C — Collaboration, T — Trust. It is the core values framework at TWC."},
+                {"instruction": "What is the full form of RESPECT?", "output": "RESPECT stands for: R — Responsibility, E — Empathy, S — Service Excellence, P — Performance with Purpose, E — Ethics & Integrity, C — Collaboration, T — Trust. It is the core values framework at Third Wave Coffee."},
                 {"instruction": "What is the full form of BLEND?", "output": "BLEND stands for: B — Brand Touchpoints, L — Learning & Leadership, E — Engage & Elevate, N — Notice & Nurture, D — Driven by R.E.S.P.E.C.T. It is the CX in-store execution framework."},
-                {"instruction": "What is the full form of C.O.F.F.E.E.?", "output": "C.O.F.F.E.E. stands for: C — Cheerful Welcome, O — Order Taking Assistance, F — Friendly & Accurate Service, F — Feedback With Solutions, E — Enjoyable Experience, E — Enthusiastic Exit. These are the six steps of customer experience at TWC."},
+                {"instruction": "What is the full form of C.O.F.F.E.E.?", "output": "C.O.F.F.E.E. stands for: C — Cheerful Welcome, O — Order Taking Assistance, F — Friendly & Accurate Service, F — Feedback With Solutions, E — Enjoyable Experience, E — Enthusiastic Exit. These are the six steps of customer experience at Third Wave Coffee."},
                 {"instruction": "What is the full form of IDP?", "output": "IDP stands for Internal Development Process — the step-by-step process within WING's for identifying and developing employees for promotion."},
                 {"instruction": "What is the full form of RNR?", "output": "RNR stands for Recognize & Reward — the program for recognizing team members who demonstrate RESPECT values."},
                 {"instruction": "What is the full form of SHLP?", "output": "SHLP stands for Shift Leadership Program — a workshop required for Shift Managers progressing to ASM."},
@@ -96,8 +96,8 @@ glossary_module = {
                 {"instruction": "What does IDP stand for?", "output": "IDP stands for Internal Development Process."},
                 {"instruction": "What does SHLP stand for?", "output": "SHLP stands for Shift Leadership Program."},
                 {"instruction": "What does RNR stand for?", "output": "RNR stands for Recognize & Reward."},
-                {"instruction": "List all abbreviations used at TWC.", "output": "Key abbreviations: TWC (Third Wave Coffee), TR (Third Rush), CX (Customer Experience), CPI (Customer Pulse Index), SOP (Standard Operating Procedure), POS (Point of Sale), MOD (Manager on Duty), LMS (Learning Management System), UPI (Unified Payments Interface), SM (Shift Manager/Store Manager), ASM (Assistant Store Manager), BT (Buddy Trainer), HRBP (HR Business Partner), QA (Quality Assurance), GM (General Manager), LS (Latte Specialist), IDP (Internal Development Process), RNR (Recognize & Reward), SHLP (Shift Leadership Program), HD (Home Delivery). Frameworks: WING's, RESPECT, BLEND, C.O.F.F.E.E."},
-                {"instruction": "What are the abbreviations and full forms used at TWC?", "output": "TWC — Third Wave Coffee, TR — Third Rush, CX — Customer Experience, CPI — Customer Pulse Index, SOP — Standard Operating Procedure, POS — Point of Sale, MOD — Manager on Duty, LMS — Learning Management System, UPI — Unified Payments Interface, SM — Shift Manager/Store Manager, ASM — Assistant Store Manager, BT — Buddy Trainer, HRBP — HR Business Partner, QA — Quality Assurance, GM — General Manager, LS — Latte Specialist, IDP — Internal Development Process, RNR — Recognize & Reward, SHLP — Shift Leadership Program, HD — Home Delivery, WING's — Winning/Integrated Development/Nurturing Talent/Getting Ready for Success, RESPECT — Responsibility/Empathy/Service Excellence/Performance with Purpose/Ethics & Integrity/Collaboration/Trust, BLEND — Brand Touchpoints/Learning & Leadership/Engage & Elevate/Notice & Nurture/Driven by R.E.S.P.E.C.T., C.O.F.F.E.E. — Cheerful Welcome/Order Taking Assistance/Friendly & Accurate Service/Feedback With Solutions/Enjoyable Experience/Enthusiastic Exit."}
+                {"instruction": "List all abbreviations used at Third Wave Coffee.", "output": "Key abbreviations: TWC (Third Wave Coffee), TR (Third Rush), CX (Customer Experience), CPI (Customer Pulse Index), SOP (Standard Operating Procedure), POS (Point of Sale), MOD (Manager on Duty), LMS (Learning Management System), UPI (Unified Payments Interface), SM (Shift Manager/Store Manager), ASM (Assistant Store Manager), BT (Buddy Trainer), HRBP (HR Business Partner), QA (Quality Assurance), GM (General Manager), LS (Latte Specialist), IDP (Internal Development Process), RNR (Recognize & Reward), SHLP (Shift Leadership Program), HD (Home Delivery). Frameworks: WING's, RESPECT, BLEND, C.O.F.F.E.E."},
+                {"instruction": "What are the abbreviations and full forms used at Third Wave Coffee?", "output": "Third Wave Coffee — Third Wave Coffee, TR — Third Rush, CX — Customer Experience, CPI — Customer Pulse Index, SOP — Standard Operating Procedure, POS — Point of Sale, MOD — Manager on Duty, LMS — Learning Management System, UPI — Unified Payments Interface, SM — Shift Manager/Store Manager, ASM — Assistant Store Manager, BT — Buddy Trainer, HRBP — HR Business Partner, QA — Quality Assurance, GM — General Manager, LS — Latte Specialist, IDP — Internal Development Process, RNR — Recognize & Reward, SHLP — Shift Leadership Program, HD — Home Delivery, WING's — Winning/Integrated Development/Nurturing Talent/Getting Ready for Success, RESPECT — Responsibility/Empathy/Service Excellence/Performance with Purpose/Ethics & Integrity/Collaboration/Trust, BLEND — Brand Touchpoints/Learning & Leadership/Engage & Elevate/Notice & Nurture/Driven by R.E.S.P.E.C.T., C.O.F.F.E.E. — Cheerful Welcome/Order Taking Assistance/Friendly & Accurate Service/Feedback With Solutions/Enjoyable Experience/Enthusiastic Exit."}
             ]
         }
     ]

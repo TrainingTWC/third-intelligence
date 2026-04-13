@@ -953,6 +953,33 @@
       x: '<path d="M18 6L6 18M6 6l12 12"/>'
     };
 
+    // ── Audio indicators (Web Audio API — no external files) ──
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    let _audioCtx = null;
+    function getAudioCtx() { if (!_audioCtx) _audioCtx = new AudioCtx(); return _audioCtx; }
+
+    function playBeep(freq, duration, type = 'sine') {
+      try {
+        const ctx = getAudioCtx();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = type;
+        osc.frequency.value = freq;
+        gain.gain.setValueAtTime(0.12, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(ctx.currentTime);
+        osc.stop(ctx.currentTime + duration);
+      } catch {}
+    }
+
+    function playStartBeep() { playBeep(880, 0.15, 'sine'); }
+    function playStopBeep() {
+      playBeep(660, 0.1, 'sine');
+      setTimeout(() => playBeep(520, 0.12, 'sine'), 120);
+    }
+
     // ── DOM ──
     const chatEl = document.getElementById('chat');
     const inputEl = document.getElementById('input');
@@ -1713,6 +1740,7 @@
       if (micActive) { stopMic(); return; }
       micActive = true;
       micBtn.classList.add('recording');
+      playStartBeep();
       micRecognition = new SpeechRecognition();
       micRecognition.lang = LANG_MAP[currentLang] || 'en-US';
       micRecognition.interimResults = true;
@@ -1738,6 +1766,7 @@
     function stopMic() {
       micActive = false;
       micBtn.classList.remove('recording');
+      playStopBeep();
       if (micRecognition) { try { micRecognition.stop(); } catch {} micRecognition = null; }
     }
 
@@ -1787,6 +1816,7 @@
       if (!voiceConvoActive) return;
       setVoiceState('listening');
       voiceTranscript.textContent = '';
+      playStartBeep();
       voiceRecognition = new SpeechRecognition();
       voiceRecognition.lang = LANG_MAP[currentLang] || 'en-US';
       voiceRecognition.interimResults = true;
@@ -1807,6 +1837,7 @@
         if (!voiceConvoActive) return;
         const q = finalText.trim();
         if (!q) { startVoiceListening(); return; }
+        playStopBeep();
         // Check for exit commands
         const lower = q.toLowerCase();
         if (lower === 'stop' || lower === 'goodbye' || lower === 'exit' || lower === 'close') {
@@ -1825,6 +1856,20 @@
     let ttsQueue = [];
     let ttsSpeaking = false;
     let ttsResolve = null;
+    let preferredVoice = null;
+
+    // Select Indian English voice when available
+    function pickVoice() {
+      const voices = speechSynthesis.getVoices();
+      // Priority: en-IN voices first, then any English voice
+      preferredVoice = voices.find(v => v.lang === 'en-IN')
+        || voices.find(v => v.lang.startsWith('en-IN'))
+        || voices.find(v => /indian/i.test(v.name) && v.lang.startsWith('en'))
+        || voices.find(v => v.lang.startsWith('en'))
+        || null;
+    }
+    speechSynthesis.addEventListener('voiceschanged', pickVoice);
+    pickVoice();
 
     function cleanForTTS(text) {
       return text.replace(/\*\*(.+?)\*\*/g, '$1')
@@ -1851,7 +1896,8 @@
       ttsSpeaking = true;
       const text = ttsQueue.shift();
       const utter = new SpeechSynthesisUtterance(text);
-      utter.lang = LANG_MAP[currentLang] || 'en-US';
+      if (preferredVoice) utter.voice = preferredVoice;
+      utter.lang = preferredVoice ? preferredVoice.lang : (LANG_MAP[currentLang] || 'en-IN');
       utter.rate = 1.1;
       utter.onend = () => ttsProcessQueue();
       utter.onerror = () => ttsProcessQueue();

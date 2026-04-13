@@ -64,7 +64,7 @@ X-API-Key: YOUR_API_KEY
 
 ```json
 {
-  "answer": "To dial in espresso at TWC, follow these steps: ...",
+  "answer": "To dial in espresso at Third Wave Coffee, follow these steps: ...",
   "sources": ["espresso_dial_in :: basic_parameters"],
   "confidence": "high"
 }

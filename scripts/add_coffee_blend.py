@@ -12,7 +12,7 @@ coffee_new_chunks = [
         "title": "C.O.F.F.E.E. Pro Tips",
         "intent": "Practical pro tips for executing each C.O.F.F.E.E. step effectively.",
         "content": (
-            "Pro Tips for executing the C.O.F.F.E.E. framework at TWC/TR. "
+            "Pro Tips for executing the C.O.F.F.E.E. framework at Third Wave Coffee / Third Rush. "
             "Cheerful Welcome Tips: Ensure your tone matches your words. A 'Welcome to Third Wave / Third Rush' with a cheerful tone lets the customer know you are happy to have them. Saying it in a dull manner with no enthusiasm makes the customer feel unwelcome and uneasy. "
             "A warm smile, eye contact, and a friendly greeting within a respectful 2-meter distance set the tone for the entire customer experience. "
             "Anticipate customer needs early. A small gesture like guiding them to a seat or opening the door for them creates a welcoming start. "
@@ -60,9 +60,9 @@ coffee_new_chunks = [
     },
     {
         "title": "C.O.F.F.E.E. Absolute NOs",
-        "intent": "Things that must never be done during customer interactions at TWC/TR.",
+        "intent": "Things that must never be done during customer interactions at Third Wave Coffee / Third Rush.",
         "content": (
-            "Absolute NOs — behaviors and actions that are strictly prohibited during customer interactions at TWC/TR. "
+            "Absolute NOs — behaviors and actions that are strictly prohibited during customer interactions at Third Wave Coffee / Third Rush. "
             "1. Avoid delaying or missing a greeting due to distractions like phones or internal conversations. "
             "2. Never invade a customer's personal space or touch children without permission. "
             "3. There is no place for rude behavior, impatience, or negative body language in customer interactions. "
@@ -93,7 +93,7 @@ coffee_new_chunks = [
                 "output": "If an issue can be resolved during the dine-in experience without escalation, do not provide customer care contact details. Try to resolve it on the spot first."
             },
             {
-                "instruction": "What discrimination is prohibited at TWC?",
+                "instruction": "What discrimination is prohibited at Third Wave Coffee?",
                 "output": "Never discriminate against customers based on caste, creed, gender, religion, age, appearance, or ability. Every customer must be treated fairly and respectfully regardless of who they are."
             },
             {
@@ -114,7 +114,7 @@ coffee_new_chunks = [
             "Order Taking Impact: For new customers — it makes customers feel at ease, recognized, and valued. Customers are happy to get discounts and offers with choice of billing options. "
             "For existing customers — customer feels recognized and valued, comfortable knowing staff knows their regular order and won't be bothered. "
             "For business — demonstrates professionalism, attention to detail, and commitment to customer satisfaction. Reduces errors and in-turn CPI improves. "
-            "Friendly Service Impact: For new customers — the customer trusts that their expectations will be met as no order will be missed or inaccurate. The customer's mind builds a positive image of the team and TWC. "
+            "Friendly Service Impact: For new customers — the customer trusts that their expectations will be met as no order will be missed or inaccurate. The customer's mind builds a positive image of the team and Third Wave Coffee. "
             "For existing customers — customers feel comfortable, valued, and develop a sense of belonging. Strong customer service differentiates us from other brands and increases customer satisfaction. "
             "For business — excellent customer service differentiates us from competitors and influences customer choice. Exceptional service drives higher spending, builds brand loyalty, and encourages positive word-of-mouth. "
             "Feedback Impact: For new customers — opportunity to clear product-related doubts and assist with additional needs like straws or tissues. Chance to engage and build a lasting connection. "
@@ -124,8 +124,8 @@ coffee_new_chunks = [
             "For existing customers — makes the customer feel at comfort and ease. Makes the brand more reliable. "
             "For business — a good customer experience sets the tone for the customer's future visits. Compels the brand to ensure all aspects of the business is set right to give great experience consistently. Aids the brand to be innovatively ahead of competition. "
             "Enthusiastic Exit Impact: For new customers — thanking leaves a positive impression and makes them feel like part of the family. Shows that our team genuinely cares. "
-            "For existing customers — makes them feel acknowledged, respected, recognized, and valued for being a regular customer. Customer prefers TWC over competition and visits frequently. "
-            "For business — enhances the overall customer experience, leaving a lasting positive impression. Customers feel great about coming to TWC and come more often."
+            "For existing customers — makes them feel acknowledged, respected, recognized, and valued for being a regular customer. Customer prefers Third Wave Coffee over competition and visits frequently. "
+            "For business — enhances the overall customer experience, leaving a lasting positive impression. Customers feel great about coming to Third Wave Coffee and come more often."
         ),
         "tags": [
             "coffee_framework", "impact", "new_customers", "existing_customers",
@@ -138,7 +138,7 @@ coffee_new_chunks = [
             },
             {
                 "instruction": "How does C.O.F.F.E.E. impact existing customers?",
-                "output": "For existing customers: They feel acknowledged, respected, and valued as regulars. A bond builds with the team driving repeat visits. They're comfortable knowing staff knows their order. They feel a sense of belonging. They can share product views and feel heard. They prefer TWC over competition and visit frequently."
+                "output": "For existing customers: They feel acknowledged, respected, and valued as regulars. A bond builds with the team driving repeat visits. They're comfortable knowing staff knows their order. They feel a sense of belonging. They can share product views and feel heard. They prefer Third Wave Coffee over competition and visit frequently."
             },
             {
                 "instruction": "What is the business impact of C.O.F.F.E.E.?",
@@ -190,7 +190,7 @@ blend_new_chunks = [
                 "output": "Offer one simple pairing that complements their order. Examples: 'Our almond croissant goes really well with cappuccino.' / 'Cold brew pairs nicely with the tiramisu.' / 'Many guests enjoy the iced latte with a chocolate brownie.' The goal is to enhance the experience, not push a sale. One suggestion, friendly tone, no pressure."
             },
             {
-                "instruction": "What are good food pairing suggestions at TWC?",
+                "instruction": "What are good food pairing suggestions at Third Wave Coffee?",
                 "output": "Some pairing suggestions: Almond croissant with cappuccino. Tiramisu with cold brew. Chocolate brownie with iced latte. Think of what naturally complements the drink or food — like how raita complements biryani."
             },
             {
@@ -293,7 +293,7 @@ blend_new_chunks = [
         "title": "Grievance Handling — Apologize & Solutionize",
         "intent": "The two-step approach to handling customer grievances in-store.",
         "content": (
-            "When a customer has a complaint or grievance, TWC/TR follows a two-step approach: Apologize and Solutionize. "
+            "When a customer has a complaint or grievance, Third Wave Coffee / Third Rush follows a two-step approach: Apologize and Solutionize. "
             "Step 1 — Apologize: Sincerely apologize for the inconvenience. Acknowledge the customer's concern without being defensive. Show empathy and let them know you understand their frustration. Use phrases like 'I'm really sorry about this' or 'I completely understand your concern.' "
             "Step 2 — Solutionize: Immediately offer a solution to resolve the issue. Take ownership and act quickly. If the product is wrong, remake it. If the service was slow, acknowledge and expedite. If there's a quality issue, replace the item. The goal is to turn a negative experience into a positive one. "
             "Key principle: If an issue can be resolved during the dine-in experience without escalation, resolve it on the spot. Do not provide customer care contact details unless the issue requires escalation beyond the store's capability."
@@ -304,12 +304,12 @@ blend_new_chunks = [
         ],
         "qa_pairs": [
             {
-                "instruction": "How should grievances be handled at TWC?",
+                "instruction": "How should grievances be handled at Third Wave Coffee?",
                 "output": "Follow the two-step approach: Apologize and Solutionize. First, sincerely apologize and acknowledge the concern without being defensive. Then immediately offer a solution — remake the product, expedite the service, or replace the item. Resolve it on the spot if possible."
             },
             {
                 "instruction": "What does Apologize and Solutionize mean?",
-                "output": "It's TWC's two-step grievance handling approach. Apologize: sincerely acknowledge the customer's concern with empathy — 'I'm really sorry about this.' Solutionize: immediately take ownership and act — remake the product, replace the item, or expedite service. The goal is to turn a negative experience into a positive one."
+                "output": "It's Third Wave Coffee's two-step grievance handling approach. Apologize: sincerely acknowledge the customer's concern with empathy — 'I'm really sorry about this.' Solutionize: immediately take ownership and act — remake the product, replace the item, or expedite service. The goal is to turn a negative experience into a positive one."
             },
             {
                 "instruction": "When should I escalate a customer complaint?",
