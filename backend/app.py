@@ -9,6 +9,9 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 import httpx
+import edge_tts
+import asyncio
+import io
 from fastapi import FastAPI, Request, UploadFile, File, Header, HTTPException
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, StreamingResponse, JSONResponse
@@ -552,7 +555,33 @@ def submit_feedback(fb: Feedback):
     return {"status": "ok", "learned": learned}
 
 
-# ── Knowledge Gaps endpoint ──
+# ── TTS endpoint (Edge neural voices) ──
+TTS_VOICE = os.getenv("TTS_VOICE", "en-IN-NeerjaNeural")
+
+class TTSRequest(BaseModel):
+    text: str
+    rate: str = "+10%"
+
+    @field_validator("text")
+    @classmethod
+    def text_not_empty(cls, v):
+        v = v.strip()
+        if not v:
+            raise ValueError("text is empty")
+        if len(v) > 2000:
+            v = v[:2000]
+        return v
+
+@app.post("/tts")
+async def tts_synthesize(req: TTSRequest):
+    """Convert text to speech using Edge TTS neural voices."""
+    communicate = edge_tts.Communicate(req.text, TTS_VOICE, rate=req.rate)
+    audio_buffer = io.BytesIO()
+    async for chunk in communicate.stream():
+        if chunk["type"] == "audio":
+            audio_buffer.write(chunk["data"])
+    audio_buffer.seek(0)
+    return StreamingResponse(audio_buffer, media_type="audio/mpeg", headers={"Cache-Control": "no-cache"})
 @app.get("/knowledge-gaps")
 def get_knowledge_gaps():
     """Return logged knowledge gaps (questions with low confidence)."""

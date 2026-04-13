@@ -1934,24 +1934,12 @@
       voiceRecognition.start();
     }
 
-    // ── Sentence-streaming TTS queue ──
+    // ── Sentence-streaming TTS queue (Edge TTS via backend) ──
     let ttsQueue = [];
     let ttsSpeaking = false;
     let ttsResolve = null;
-    let preferredVoice = null;
-
-    // Select Indian English voice when available
-    function pickVoice() {
-      const voices = speechSynthesis.getVoices();
-      // Priority: en-IN voices first, then any English voice
-      preferredVoice = voices.find(v => v.lang === 'en-IN')
-        || voices.find(v => v.lang.startsWith('en-IN'))
-        || voices.find(v => /indian/i.test(v.name) && v.lang.startsWith('en'))
-        || voices.find(v => v.lang.startsWith('en'))
-        || null;
-    }
-    speechSynthesis.addEventListener('voiceschanged', pickVoice);
-    pickVoice();
+    let currentAudio = null;
+    let ttsBlobURLs = [];   // track blob URLs for cleanup
 
     function cleanForTTS(text) {
       return text.replace(/\*\*(.+?)\*\*/g, '$1')
@@ -1969,7 +1957,7 @@
       if (!ttsSpeaking) ttsProcessQueue();
     }
 
-    function ttsProcessQueue() {
+    async function ttsProcessQueue() {
       if (ttsQueue.length === 0) {
         ttsSpeaking = false;
         if (ttsResolve) { ttsResolve(); ttsResolve = null; }
@@ -1977,17 +1965,28 @@
       }
       ttsSpeaking = true;
       const text = ttsQueue.shift();
-      const utter = new SpeechSynthesisUtterance(text);
-      if (preferredVoice) utter.voice = preferredVoice;
-      utter.lang = preferredVoice ? preferredVoice.lang : (LANG_MAP[currentLang] || 'en-IN');
-      utter.rate = 1.1;
-      utter.onend = () => ttsProcessQueue();
-      utter.onerror = () => ttsProcessQueue();
-      window.speechSynthesis.speak(utter);
+      try {
+        const res = await fetch('/tts', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text })
+        });
+        if (!res.ok) { ttsProcessQueue(); return; }
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+        ttsBlobURLs.push(url);
+        const audio = new Audio(url);
+        currentAudio = audio;
+        audio.onended = () => { currentAudio = null; ttsProcessQueue(); };
+        audio.onerror = () => { currentAudio = null; ttsProcessQueue(); };
+        audio.play();
+      } catch {
+        currentAudio = null;
+        ttsProcessQueue();
+      }
     }
 
     function ttsFlush() {
-      // Returns a promise that resolves when all queued speech finishes
       return new Promise(resolve => {
         if (!ttsSpeaking && ttsQueue.length === 0) { resolve(); return; }
         ttsResolve = resolve;
@@ -1997,8 +1996,11 @@
     function ttsCancel() {
       ttsQueue = [];
       ttsSpeaking = false;
-      ttsResolve = null;
-      window.speechSynthesis.cancel();
+      if (ttsResolve) { ttsResolve(); ttsResolve = null; }
+      if (currentAudio) { currentAudio.pause(); currentAudio = null; }
+      // Clean up blob URLs
+      ttsBlobURLs.forEach(u => URL.revokeObjectURL(u));
+      ttsBlobURLs = [];
     }
 
     // Sentence boundary regex: split on . ! ? : followed by space/end, or double newline
@@ -2012,6 +2014,12 @@
       addMsg('user', question);
       addMessageToStore('user', question);
       voiceHistory.push({ role: 'user', text: question });
+
+      // 3-second filler: if AI takes too long, speak a placeholder
+      let fillerTimer = setTimeout(() => {
+        ttsEnqueue('Let me look into that for you.');
+        setVoiceState('speaking');
+      }, 3000);
 
       try {
         const res = await fetch('/ask', {
@@ -2037,6 +2045,9 @@
             if (token === '[DONE]' || token.startsWith('[META]')) continue;
             fullText += token;
             buffer += token;
+
+            // Cancel filler timer once real content arrives
+            if (fillerTimer) { clearTimeout(fillerTimer); fillerTimer = null; }
 
             // Check for sentence boundaries and queue TTS
             let parts = buffer.split(SENTENCE_RE);
