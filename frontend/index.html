@@ -1934,12 +1934,12 @@
       voiceRecognition.start();
     }
 
-    // ── Sentence-streaming TTS queue (Edge TTS via backend) ──
-    let ttsQueue = [];
+    // ── Sentence-streaming TTS queue (Edge TTS via backend, pre-fetched) ──
+    let ttsQueue = [];       // queue of { promise: Promise<Blob> }
     let ttsSpeaking = false;
     let ttsResolve = null;
     let currentAudio = null;
-    let ttsBlobURLs = [];   // track blob URLs for cleanup
+    let ttsBlobURLs = [];
 
     function cleanForTTS(text) {
       return text.replace(/\*\*(.+?)\*\*/g, '$1')
@@ -1950,10 +1950,21 @@
         .trim();
     }
 
+    // Pre-fetch audio immediately when enqueued (don't wait for playback)
+    function ttsFetchAudio(text) {
+      return fetch('/tts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text })
+      }).then(r => r.ok ? r.blob() : null).catch(() => null);
+    }
+
     function ttsEnqueue(sentence) {
       const clean = cleanForTTS(sentence);
       if (!clean) return;
-      ttsQueue.push(clean);
+      // Start fetching audio immediately in background
+      const promise = ttsFetchAudio(clean);
+      ttsQueue.push({ promise });
       if (!ttsSpeaking) ttsProcessQueue();
     }
 
@@ -1964,15 +1975,10 @@
         return;
       }
       ttsSpeaking = true;
-      const text = ttsQueue.shift();
+      const item = ttsQueue.shift();
       try {
-        const res = await fetch('/tts', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ text })
-        });
-        if (!res.ok) { ttsProcessQueue(); return; }
-        const blob = await res.blob();
+        const blob = await item.promise;
+        if (!blob) { ttsProcessQueue(); return; }
         const url = URL.createObjectURL(blob);
         ttsBlobURLs.push(url);
         const audio = new Audio(url);
@@ -1998,10 +2004,11 @@
       ttsSpeaking = false;
       if (ttsResolve) { ttsResolve(); ttsResolve = null; }
       if (currentAudio) { currentAudio.pause(); currentAudio = null; }
-      // Clean up blob URLs
       ttsBlobURLs.forEach(u => URL.revokeObjectURL(u));
       ttsBlobURLs = [];
     }
+
+    const GREETING_RE = /^\s*(hi|hello|hey|good\s*(morning|afternoon|evening)|howdy|sup|what'?s\s*up|yo|namaste|hola)\s*[!.,?]*\s*$/i;
 
     // Sentence boundary regex: split on . ! ? : followed by space/end, or double newline
     const SENTENCE_RE = /(?<=[.!?:])\s+|\n\n/;
@@ -2015,11 +2022,14 @@
       addMessageToStore('user', question);
       voiceHistory.push({ role: 'user', text: question });
 
-      // 3-second filler: if AI takes too long, speak a placeholder
-      let fillerTimer = setTimeout(() => {
-        ttsEnqueue('Let me look into that for you.');
-        setVoiceState('speaking');
-      }, 3000);
+      // 3-second filler: if AI takes too long, speak a placeholder (skip for greetings)
+      let fillerTimer = null;
+      if (!GREETING_RE.test(question)) {
+        fillerTimer = setTimeout(() => {
+          ttsEnqueue('Let me look into that for you.');
+          setVoiceState('speaking');
+        }, 3000);
+      }
 
       try {
         const res = await fetch('/ask', {
