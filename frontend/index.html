@@ -658,13 +658,13 @@
       min-height: 20px; opacity: 0.8;
     }
     .voice-trigger-btn {
-      width: 36px; height: 36px; border-radius: var(--radius-xs); border: 1px solid var(--border-subtle);
-      background: var(--surface-1); color: var(--text-2); cursor: pointer;
+      width: 40px; height: 40px; border-radius: var(--radius-xs); border: none;
+      background: none; color: var(--text-3); cursor: pointer;
       display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-      transition: all 0.2s;
+      transition: all 0.2s; position: relative;
     }
-    .voice-trigger-btn:hover { background: var(--surface-2); color: var(--accent); border-color: var(--accent); }
-    .voice-trigger-btn svg { width: 17px; height: 17px; }
+    .voice-trigger-btn:hover { color: var(--accent); background: var(--surface-2); }
+    .voice-trigger-btn svg { width: 20px; height: 20px; }
     .voice-trigger-btn.unsupported { display: none; }
 
     .footer { text-align: center; font-size: 10px; color: var(--text-3); margin-top: 8px; letter-spacing: 0.8px; text-transform: uppercase; }
@@ -748,7 +748,7 @@
       .attach-btn:active { transform: scale(0.9); transition-duration: 0.1s; }
       .mic-btn { width: 44px; height: 44px; }
       .mic-btn:active { transform: scale(0.9); transition-duration: 0.1s; }
-      .voice-trigger-btn { width: 36px; height: 36px; }
+      .voice-trigger-btn { width: 44px; height: 44px; }
       .voice-trigger-btn:active { transform: scale(0.9); transition-duration: 0.1s; }
       .voice-orb-wrap { width: 120px; height: 120px; }
       .sidebar-btn { width: 44px; height: 44px; }
@@ -887,11 +887,6 @@
           <option value="ta">TA - Tamil</option>
           <option value="te">TE - Telugu</option>
         </select>
-        <button class="voice-trigger-btn" id="voiceTriggerBtn" onclick="openVoiceOverlay()" title="Voice conversation">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/>
-          </svg>
-        </button>
       </div>
 
       <div class="chat" id="chat">
@@ -920,7 +915,12 @@
             <textarea id="input" rows="1" placeholder="Ask something..." onkeydown="handleKey(event)" oninput="autoGrow(this)"></textarea>
             <button class="mic-btn" id="micBtn" onclick="toggleMic()" title="Voice input">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="9" y="1" width="6" height="11" rx="3"/><path d="M19 10v2a7 7 0 01-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/>
+                <path d="M12 2a3 3 0 00-3 3v6a3 3 0 006 0V5a3 3 0 00-3-3z"/><path d="M19 10v1a7 7 0 01-14 0v-1"/><path d="M12 18v3"/>
+              </svg>
+            </button>
+            <button class="voice-trigger-btn" id="voiceTriggerBtn" onclick="openVoiceOverlay()" title="Voice conversation">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M2 12h2"/><path d="M6 8v8"/><path d="M10 5v14"/><path d="M14 3v18"/><path d="M18 8v8"/><path d="M22 12h-2"/>
               </svg>
             </button>
             <button class="send-btn" id="sendBtn" onclick="send()">
