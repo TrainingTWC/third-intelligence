@@ -1076,9 +1076,9 @@
       text = text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
 
       // Pre-process: aggressively split inline bullets onto their own lines.
-      text = text.replace(/([^\n])\s*(?:- )(?=[A-Z<])/g, '$1\n- ');
-      text = text.replace(/([^\n])\s*(?:\* )(?=[A-Z<])/g, '$1\n* ');
-      text = text.replace(/([^\n])\s*(\d+[\.\)])\s+(?=[A-Z<])/g, '$1\n$2 ');
+      text = text.replace(/([^\n])\s*(?:- )(?=\S)/g, '$1\n- ');
+      text = text.replace(/([^\n])\s*(?:\* )(?=\S)/g, '$1\n* ');
+      text = text.replace(/([^\n])\s*(\d+[\.\)])\s+(?=\S)/g, '$1\n$2 ');
 
       const lines = text.split('\n');
       let html = '';
@@ -1559,7 +1559,7 @@
           const lines = chunk.split('\n');
           for (const line of lines) {
             if (!line.startsWith('data: ')) continue;
-            const token = line.slice(6);
+            const token = line.slice(6).replace(/\x1f/g, '\n');
             if (token === '[DONE]') continue;
             // Parse metadata event
             if (token.startsWith('[META]')) {
@@ -1951,7 +1951,7 @@
           const lines = chunk.split('\n');
           for (const line of lines) {
             if (!line.startsWith('data: ')) continue;
-            const token = line.slice(6);
+            const token = line.slice(6).replace(/\x1f/g, '\n');
             if (token === '[DONE]' || token.startsWith('[META]')) continue;
             fullText += token;
             buffer += token;

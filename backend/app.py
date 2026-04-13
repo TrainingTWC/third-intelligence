@@ -443,7 +443,8 @@ Previous conversation:
                 for chunk in response:
                     if chunk.text:
                         full_answer.append(chunk.text)
-                        yield f"data: {chunk.text}\n\n"
+                        safe = chunk.text.replace('\n', '\x1f')
+                        yield f"data: {safe}\n\n"
                 meta = json.dumps({"sources": sources, "confidence": confidence})
                 yield f"data: [META]{meta}\n\n"
                 yield "data: [DONE]\n\n"
@@ -466,7 +467,8 @@ Previous conversation:
             for chunk in response:
                 if chunk.text:
                     full_answer.append(chunk.text)
-                    yield f"data: {chunk.text}\n\n"
+                    safe = chunk.text.replace('\n', '\x1f')
+                    yield f"data: {safe}\n\n"
             meta = json.dumps({"sources": sources, "confidence": confidence})
             yield f"data: [META]{meta}\n\n"
             yield "data: [DONE]\n\n"
