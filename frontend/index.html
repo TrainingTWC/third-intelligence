@@ -195,7 +195,7 @@
        LAYOUT
     ═══════════════════════════════════════ */
     .shell {
-      display: flex; height: 100vh; position: relative; z-index: 1;
+      display: flex; height: 100vh; height: 100dvh; position: relative; z-index: 1;
       opacity: 0; transition: opacity 0.5s ease;
     }
     .shell.visible { opacity: 1; }
@@ -344,14 +344,13 @@
 
     /* ── Sidebar toggle (mobile) ── */
     .sidebar-toggle {
-      display: none; position: fixed; top: 16px; left: 16px; z-index: 6;
-      width: 40px; height: 40px; border-radius: var(--radius-xs);
-      border: 1px solid var(--border-subtle); background: var(--sidebar-bg);
-      backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+      display: none; position: fixed; top: 16px; left: 16px; z-index: 101;
+      width: 36px; height: 36px; border-radius: var(--radius-xs);
+      border: 1px solid var(--border-subtle); background: var(--bg);
       cursor: pointer; align-items: center; justify-content: center; color: var(--text-1);
       transition: all 0.2s ease;
     }
-    .sidebar-toggle svg { width: 18px; height: 18px; }
+    .sidebar-toggle svg { width: 16px; height: 16px; }
 
     /* Pin btn only shows when expanded */
     .pin-btn { opacity: 0; pointer-events: none; transition: opacity 0.25s ease; }
@@ -730,8 +729,8 @@
         transform: translateX(-100%); z-index: 100;
         transition: transform 0.4s cubic-bezier(0.32,0.72,0,1), background 0.4s ease;
         will-change: transform;
-        /* Opaque fallback for devices without backdrop-filter */
         background: var(--bg) !important;
+        backdrop-filter: none !important; -webkit-backdrop-filter: none !important;
         overflow-y: auto; overflow-x: hidden;
       }
       .sidebar.open { transform: translateX(0); }
@@ -750,14 +749,15 @@
       .sidebar .sidebar-logo-wrap { width: 36px; height: 36px; flex-shrink: 0; }
       .pin-btn { display: none !important; }
       .sidebar-toggle { display: flex; }
-      .sidebar-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 99; opacity: 0; pointer-events: none; transition: opacity 0.35s cubic-bezier(0.25,0.46,0.45,0.94); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+      .sidebar-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 99; opacity: 0; pointer-events: none; transition: opacity 0.35s cubic-bezier(0.25,0.46,0.45,0.94); }
       .sidebar-overlay.visible { opacity: 1; pointer-events: auto; }
 
       /* Chat area */
-      .chat { padding: 20px 14px; padding-top: calc(20px + env(safe-area-inset-top, 0px)); }
-      .input-wrap { padding: 8px 14px calc(16px + env(safe-area-inset-bottom, 0px)); transition: padding 0.25s cubic-bezier(0.25,0.46,0.45,0.94); }
-      .input-box { padding: 6px 6px 6px 10px; border-radius: var(--radius-sm); }
+      .chat { padding: 20px 14px; padding-top: calc(8px + env(safe-area-inset-top, 0px)); }
+      .input-wrap { padding: 8px 10px calc(8px + env(safe-area-inset-bottom, 0px)); transition: padding 0.25s cubic-bezier(0.25,0.46,0.45,0.94); }
+      .input-box { padding: 4px 4px 4px 10px; border-radius: var(--radius-sm); }
       .input-box textarea { font-size: 16px; } /* Prevent iOS zoom on focus */
+      .input-row { gap: 4px; }
 
       /* Messages */
       .msg { margin-bottom: 18px; }
@@ -774,12 +774,12 @@
       .welcome p { font-size: 13px; max-width: 280px; }
 
       /* Header — horizontal scroll for mode pills */
-      .header { padding: 10px 14px 10px 56px; height: auto; min-height: 1px; gap: 8px; flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; justify-content: flex-start; }
+      .header { padding: 8px 10px 8px 48px; height: auto; min-height: 1px; gap: 6px; flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; justify-content: flex-start; align-items: center; }
       .header::-webkit-scrollbar { display: none; }
-      .mode-toggle { flex-shrink: 0; }
-      .mode-btn { padding: 5px 10px; font-size: 11px; touch-action: manipulation; }
+      .mode-toggle { flex-shrink: 0; padding: 2px; gap: 1px; }
+      .mode-btn { padding: 4px 8px; font-size: 11px; touch-action: manipulation; border-radius: 6px; }
       .mode-btn:active { transform: scale(0.95); transition-duration: 0.1s; }
-      .lang-select { font-size: 11px; padding: 5px 20px 5px 8px; flex-shrink: 0; }
+      .lang-select { font-size: 11px; padding: 4px 20px 4px 8px; flex-shrink: 0; }
 
       /* Splash adjustments */
       .splash-logo-wrap { width: 80px; height: 80px; }
@@ -789,18 +789,18 @@
       /* Footer */
       .footer { font-size: 9px; margin-top: 4px; }
 
-      /* Touch-friendly buttons (44px Apple HIG minimum) */
-      .send-btn { width: 44px; height: 44px; }
+      /* Touch-friendly buttons */
+      .send-btn { width: 38px; height: 38px; }
       .send-btn:active { transform: scale(0.9); transition-duration: 0.1s; }
-      .attach-btn { width: 44px; height: 44px; }
+      .attach-btn { width: 38px; height: 38px; }
       .attach-btn:active { transform: scale(0.9); transition-duration: 0.1s; }
-      .mic-btn { width: 44px; height: 44px; }
+      .mic-btn { width: 38px; height: 38px; }
       .mic-btn:active { transform: scale(0.9); transition-duration: 0.1s; }
-      .voice-trigger-btn { width: 44px; height: 44px; }
+      .voice-trigger-btn { width: 38px; height: 38px; }
       .voice-trigger-btn:active { transform: scale(0.9); transition-duration: 0.1s; }
       .voice-orb-wrap { width: 120px; height: 120px; }
       .sidebar-btn { width: 44px; height: 44px; }
-      .sidebar-toggle { top: max(16px, env(safe-area-inset-top, 16px)); left: max(14px, env(safe-area-inset-left, 14px)); }
+      .sidebar-toggle { top: max(8px, env(safe-area-inset-top, 8px)); left: max(10px, env(safe-area-inset-left, 10px)); }
       .sidebar-toggle:active { transform: scale(0.9); transition-duration: 0.1s; }
 
       /* Voice overlay mobile */
@@ -829,12 +829,12 @@
     /* Extra small screens (below 380px) */
     @media (max-width: 380px) {
       .chat { padding: 16px 10px; }
-      .input-wrap { padding: 6px 10px calc(14px + env(safe-area-inset-bottom, 0px)); }
+      .input-wrap { padding: 6px 8px calc(6px + env(safe-area-inset-bottom, 0px)); }
       .msg-bubble { padding: 10px 12px; font-size: 13px; }
       .welcome h1 { font-size: 18px; }
       .suggestion { padding: 10px 12px; font-size: 12px; }
-      .header { padding-left: 50px; gap: 6px; }
-      .mode-btn { padding: 4px 8px; font-size: 10px; }
+      .header { padding-left: 46px; gap: 4px; }
+      .mode-btn { padding: 4px 6px; font-size: 10px; }
       .lang-select { font-size: 10px; padding: 4px 18px 4px 6px; }
     }
 
