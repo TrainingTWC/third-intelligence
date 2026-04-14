@@ -1866,9 +1866,9 @@
     function setVoiceState(state) {
       voiceState = state;
       voiceOverlay.className = 'voice-overlay active state-' + state;
-      if (state === 'listening') voiceStatus.textContent = 'Listening...';
-      else if (state === 'thinking') voiceStatus.textContent = 'Thinking...';
-      else if (state === 'speaking') voiceStatus.textContent = 'Speaking...';
+      if (state === 'listening') voiceStatus.textContent = 'Go ahead, I\'m listening...';
+      else if (state === 'thinking') voiceStatus.textContent = '';
+      else if (state === 'speaking') voiceStatus.textContent = '';
       else voiceStatus.textContent = 'Tap to start';
     }
 
@@ -1898,7 +1898,6 @@
       if (!voiceConvoActive) return;
       setVoiceState('listening');
       voiceTranscript.textContent = '';
-      playStartBeep();
       voiceRecognition = new SpeechRecognition();
       voiceRecognition.lang = LANG_MAP[currentLang] || 'en-US';
       voiceRecognition.interimResults = true;
@@ -1919,7 +1918,6 @@
         if (!voiceConvoActive) return;
         const q = finalText.trim();
         if (!q) { startVoiceListening(); return; }
-        playStopBeep();
         // Check for exit commands
         const lower = q.toLowerCase();
         if (lower === 'stop' || lower === 'goodbye' || lower === 'exit' || lower === 'close') {
@@ -2022,13 +2020,21 @@
       addMessageToStore('user', question);
       voiceHistory.push({ role: 'user', text: question });
 
-      // 3-second filler: if AI takes too long, speak a placeholder (skip for greetings)
+      // 5-second filler: if AI takes too long, speak a varied placeholder (skip for greetings)
+      const FILLER_PHRASES = [
+        'Hmm, give me a sec.',
+        'One moment, just pulling that up.',
+        'Ooh, let me think about that.',
+        'Hang on, got it in a sec.',
+        'Just a moment...'
+      ];
       let fillerTimer = null;
       if (!GREETING_RE.test(question)) {
         fillerTimer = setTimeout(() => {
-          ttsEnqueue('Let me look into that for you.');
+          const phrase = FILLER_PHRASES[Math.floor(Math.random() * FILLER_PHRASES.length)];
+          ttsEnqueue(phrase);
           setVoiceState('speaking');
-        }, 3000);
+        }, 5000);
       }
 
       try {
