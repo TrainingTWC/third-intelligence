@@ -150,6 +150,15 @@ app.mount("/static", StaticFiles(directory="../frontend"), name="static")
 def serve_ui():
     return FileResponse("../frontend/index.html", headers={"Cache-Control": "no-cache, no-store, must-revalidate"})
 
+@app.get("/manifest.json")
+def serve_manifest():
+    return FileResponse("../frontend/manifest.json", media_type="application/manifest+json")
+
+@app.get("/sw.js")
+def serve_sw():
+    return FileResponse("../frontend/sw.js", media_type="application/javascript",
+                        headers={"Cache-Control": "no-cache", "Service-Worker-Allowed": "/"})
+
 @app.get("/admin")
 def serve_admin():
     return FileResponse("../frontend/admin.html", headers={"Cache-Control": "no-cache, no-store, must-revalidate"})

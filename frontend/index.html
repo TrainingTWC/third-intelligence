@@ -3,10 +3,18 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1" />
+  <meta name="theme-color" content="#8b7cf6" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <link rel="manifest" href="/manifest.json" />
+  <link rel="apple-touch-icon" href="/static/logo.png" />
   <title>Third Intelligence</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { overscroll-behavior: none; -webkit-touch-callout: none; }
+    button, a, input, select, textarea { -webkit-touch-callout: none; touch-action: manipulation; }
 
     /* ═══════════════════════════════════════
        THEME VARIABLES
@@ -815,6 +823,7 @@
 
       /* Message actions bigger touch targets */
       .msg-action-btn { padding: 6px 10px; min-height: 36px; }
+      .scroll-bottom-fab { bottom: 80px; right: 14px; width: 36px; height: 36px; }
     }
 
     /* Extra small screens (below 380px) */
@@ -846,6 +855,38 @@
       box-shadow: 0 4px 16px rgba(0,0,0,0.25);
     }
     .toast-notification.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    /* ── Scroll-to-bottom FAB ── */
+    .scroll-bottom-fab {
+      position: absolute; bottom: 90px; right: 20px; z-index: 8;
+      width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--border-subtle);
+      background: var(--surface-1); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+      color: var(--text-2); cursor: pointer; display: flex; align-items: center; justify-content: center;
+      opacity: 0; pointer-events: none; transform: translateY(10px) scale(0.9);
+      transition: all 0.25s cubic-bezier(0.16,1,0.3,1);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    .scroll-bottom-fab.visible { opacity: 1; pointer-events: auto; transform: translateY(0) scale(1); }
+    .scroll-bottom-fab:active { transform: scale(0.9); }
+    .scroll-bottom-fab svg { width: 18px; height: 18px; }
+
+    /* ── Offline banner ── */
+    .offline-banner {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 10001;
+      background: #ef4444; color: #fff; text-align: center;
+      font-size: 12px; font-weight: 500; padding: 6px 16px;
+      transform: translateY(-100%); transition: transform 0.3s cubic-bezier(0.16,1,0.3,1);
+    }
+    .offline-banner.show { transform: translateY(0); }
+
+    /* ── Low-end device: reduce blur ── */
+    .low-end-device .input-box,
+    .low-end-device .msg.user .msg-bubble,
+    .low-end-device .msg.ai .msg-bubble,
+    .low-end-device .suggestion,
+    .low-end-device .sidebar-toggle,
+    .low-end-device .sidebar-overlay { backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }
+    .low-end-device .orb { display: none !important; }
   </style>
 </head>
 <body>
@@ -972,8 +1013,15 @@
         </div>
         <div class="footer">Internal Use Only</div>
       </div>
+      <!-- Scroll to bottom FAB -->
+      <button class="scroll-bottom-fab" id="scrollBottomFab" onclick="chatEl.scrollTo({top:chatEl.scrollHeight,behavior:'smooth'})" aria-label="Scroll to bottom">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+      </button>
     </div>
   </div>
+
+  <!-- Offline banner -->
+  <div class="offline-banner" id="offlineBanner">You're offline — check your connection</div>
 
   <!-- Voice Conversation Overlay (Tier 2) -->
   <div class="voice-overlay" id="voiceOverlay">
@@ -1075,7 +1123,11 @@
       }
     };
 
+    // ── Haptic helper ──
+    function haptic(ms = 10) { try { navigator.vibrate(ms); } catch {} }
+
     function setMode(mode, btn) {
+      haptic();
       currentMode = mode;
       document.documentElement.setAttribute('data-mode', mode);
       document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
@@ -1399,10 +1451,12 @@
           const windowHeight = window.innerHeight;
           const keyboardHeight = windowHeight - vvHeight;
           if (keyboardHeight > 100) {
-            // Keyboard is open — adjust input position
+            // Keyboard is open — adjust input position smoothly
+            inputWrap.style.transition = 'padding-bottom 0.15s ease-out';
             inputWrap.style.paddingBottom = keyboardHeight + 'px';
             chatEl.scrollTop = chatEl.scrollHeight;
           } else {
+            inputWrap.style.transition = 'padding-bottom 0.15s ease-out';
             inputWrap.style.paddingBottom = '';
           }
           pendingFrame = null;
@@ -1589,6 +1643,7 @@
       const text = inputEl.value.trim();
       const hasFiles = pendingFiles.length > 0;
       if ((!text && !hasFiles) || busy) return;
+      haptic(15);
 
       busy = true;
       sendBtn.disabled = true;
@@ -1874,6 +1929,7 @@
 
     function openVoiceOverlay() {
       if (!SpeechRecognition) return;
+      haptic(20);
       voiceConvoActive = true;
       voiceHistory = [];
       // Copy recent chat history for context
@@ -2116,6 +2172,30 @@
         startVoiceListening();
       }
     });
+
+    // ── Scroll-to-bottom FAB visibility ──
+    const scrollFab = document.getElementById('scrollBottomFab');
+    chatEl.addEventListener('scroll', () => {
+      const distFromBottom = chatEl.scrollHeight - chatEl.scrollTop - chatEl.clientHeight;
+      scrollFab.classList.toggle('visible', distFromBottom > 200);
+    });
+
+    // ── Offline / online detection ──
+    const offlineBanner = document.getElementById('offlineBanner');
+    function updateOnline() { offlineBanner.classList.toggle('show', !navigator.onLine); }
+    window.addEventListener('online', updateOnline);
+    window.addEventListener('offline', updateOnline);
+    updateOnline();
+
+    // ── Low-end device detection ──
+    if (navigator.hardwareConcurrency && navigator.hardwareConcurrency < 4) {
+      document.documentElement.classList.add('low-end-device');
+    }
+
+    // ── Register Service Worker ──
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').catch(() => {});
+    }
 
     inputEl.focus();
   </script>
