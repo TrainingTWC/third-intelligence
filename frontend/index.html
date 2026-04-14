@@ -350,7 +350,10 @@
       cursor: pointer; align-items: center; justify-content: center; color: var(--text-1);
       transition: all 0.2s ease;
     }
-    .sidebar-toggle svg { width: 16px; height: 16px; }
+    .sidebar-toggle .hamburger-icon, .sidebar-toggle .close-icon { width: 16px; height: 16px; transition: opacity 0.2s ease, transform 0.2s ease; }
+    .sidebar-toggle .close-icon { display: none; }
+    .sidebar-toggle.is-open .hamburger-icon { display: none; }
+    .sidebar-toggle.is-open .close-icon { display: block; }
 
     /* Pin btn only shows when expanded */
     .pin-btn { opacity: 0; pointer-events: none; transition: opacity 0.25s ease; }
@@ -779,7 +782,7 @@
       .mode-toggle { flex-shrink: 0; padding: 2px; gap: 1px; }
       .mode-btn { padding: 4px 8px; font-size: 11px; touch-action: manipulation; border-radius: 6px; }
       .mode-btn:active { transform: scale(0.95); transition-duration: 0.1s; }
-      .lang-select { font-size: 11px; padding: 4px 20px 4px 8px; flex-shrink: 0; }
+      .lang-select { font-size: 10px; padding: 3px 18px 3px 6px; flex-shrink: 0; min-width: 0; width: auto; }
 
       /* Splash adjustments */
       .splash-logo-wrap { width: 80px; height: 80px; }
@@ -914,8 +917,9 @@
   <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
 
   <!-- Sidebar toggle (mobile) -->
-  <button class="sidebar-toggle" id="sidebarToggle" onclick="openSidebar()">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+  <button class="sidebar-toggle" id="sidebarToggle" onclick="toggleSidebar()">
+    <svg class="hamburger-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+    <svg class="close-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
   </button>
 
   <!-- App Shell -->
@@ -963,10 +967,10 @@
         </div>
         <select class="lang-select" id="langSelect" onchange="setLanguage(this.value)">
           <option value="en">EN</option>
-          <option value="hi">HI - Hindi</option>
-          <option value="kn">KN - Kannada</option>
-          <option value="ta">TA - Tamil</option>
-          <option value="te">TE - Telugu</option>
+          <option value="hi">HI</option>
+          <option value="kn">KN</option>
+          <option value="ta">TA</option>
+          <option value="te">TE</option>
         </select>
       </div>
 
@@ -1372,8 +1376,19 @@
     }
 
     // ── Sidebar: mobile open/close + pin ──
-    function openSidebar() { sidebarEl.classList.add('open'); sidebarOverlay.classList.add('visible'); }
-    function closeSidebar() { sidebarEl.classList.remove('open'); sidebarOverlay.classList.remove('visible'); }
+    function openSidebar() {
+      sidebarEl.classList.add('open');
+      sidebarOverlay.classList.add('visible');
+      document.getElementById('sidebarToggle').classList.add('is-open');
+    }
+    function closeSidebar() {
+      sidebarEl.classList.remove('open');
+      sidebarOverlay.classList.remove('visible');
+      document.getElementById('sidebarToggle').classList.remove('is-open');
+    }
+    function toggleSidebar() {
+      sidebarEl.classList.contains('open') ? closeSidebar() : openSidebar();
+    }
     function togglePin() {
       sidebarEl.classList.toggle('pinned');
       localStorage.setItem('ti-pinned', sidebarEl.classList.contains('pinned') ? '1' : '0');
